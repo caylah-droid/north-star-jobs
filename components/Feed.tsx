@@ -1,234 +1,186 @@
-'use client'
+import { NextResponse } from 'next/server'
 
-import { useState, useEffect } from 'react'
+const CAYLAH_KEYWORDS = [
+  'revenue operations', 'revops', 'gtm operations', 'sales operations',
+  'business operations', 'process operations', 'systems operations',
+  'operations manager', 'operations lead', 'business systems',
+  'workflow automation', 'crm operations', 'growth operations',
+  'operational excellence', 'process improvement', 'operations specialist',
+  'head of operations', 'director of operations', 'ops manager',
+  'business analyst', 'process analyst', 'systems analyst',
+]
 
-type FeedJob = {
-  id: string
-  company: string
-  role: string
-  platform: string
-  url: string
-  salary: string | null
-  postedAt: string | null
-  source: string
-  description: string | null
+const KYLE_KEYWORDS = [
+  'customer success', 'client success', 'account manager',
+  'account executive', 'client relations', 'customer experience',
+  'legal operations', 'legaltech', 'legal tech', 'law firm',
+  'client implementation', 'onboarding manager', 'partnership manager',
+  'marketing operations', 'agency operations', 'client onboarding',
+  'customer onboarding', 'client services', 'account management',
+  'customer support manager', 'client manager', 'success manager',
+  'relationship manager', 'client partner', 'customer relations',
+]
+
+function matchesUser(title: string, description: string, user: string): boolean {
+  const keywords = user === 'caylah' ? CAYLAH_KEYWORDS : KYLE_KEYWORDS
+  const text = `${title} ${description}`.toLowerCase()
+  return keywords.some(keyword => text.includes(keyword.toLowerCase()))
 }
 
-type Props = { activeUser: 'caylah' | 'kyle' }
+async function fetchRemotive(user: string) {
+  try {
+    const res = await fetch('https://remotive.com/api/remote-jobs?limit=100', {
+      next: { revalidate: 3600 }
+    })
+    const data = await res.json()
+    return data.jobs
+      .filter((job: any) => matchesUser(job.title, job.description || '', user))
+      .map((job: any) => ({
+        id: `remotive-${job.id}`,
+        company: job.company_name,
+        role: job.title,
+        platform: 'Remotive',
+        url: job.url,
+        salary: job.salary || null,
+        postedAt: job.publication_date,
+        source: 'remotive',
+        description: job.description?.replace(/<[^>]*>/g, '').slice(0, 300) + '...',
+      }))
+  } catch { return [] }
+}
 
-export default function Feed({ activeUser }: Props) {
-  const isKyle = activeUser === 'kyle'
-  const [jobs, setJobs] = useState<FeedJob[]>([])
-  const [loading, setLoading] = useState(true)
-  const [adding, setAdding] = useState<string | null>(null)
-  const [added, setAdded] = useState<Set<string>>(new Set())
+async function fetchWeworkremotely(user: string) {
+  try {
+    const category = user === 'caylah'
+      ? 'https://weworkremotely.com/categories/remote-management-and-finance-jobs.rss'
+      : 'https://weworkremotely.com/categories/remote-customer-support-jobs.rss'
 
-  const loadFeed = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/feed?user=${activeUser}`)
-      const data = await res.json()
-      setJobs(data)
-    } catch {
-      setJobs([])
-    }
-    setLoading(false)
-  }
+    const res = await fetch(category, { next: { revalidate: 3600 } })
+    const text = await res.text()
+    const items = text.match(/<item>([\s\S]*?)<\/item>/g) || []
 
-  useEffect(() => { loadFeed() }, [activeUser])
+    return items.map(item => {
+      const title = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] || ''
+      const link = item.match(/<link>(.*?)<\/link>/)?.[1] || ''
+      const pubDate = item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || ''
+      const company = title.split(' at ')?.[1] || ''
+      const role = title.split(' at ')?.[0] || title
+      return {
+        id: `wwr-${link}`,
+        company,
+        role,
+        platform: 'We Work Remotely',
+        url: link,
+        salary: null,
+        postedAt: pubDate ? new Date(pubDate).toISOString() : null,
+        source: 'weworkremotely',
+        description: null,
+      }
+    }).filter(job => matchesUser(job.role, '', user))
+  } catch { return [] }
+}
 
-  const addToPipeline = async (job: FeedJob) => {
-    setAdding(job.id)
-    try {
-      await fetch('/api/jobs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          company: job.company,
-          role: job.role,
-          platform: job.platform,
-          url: job.url,
-          postedAt: job.postedAt,
-          salaryMin: null,
-          salaryMax: null,
-          user: activeUser,
-          track: null,
-        }),
-      })
-      setAdded(prev => new Set(Array.from(prev).concat(job.id)))
-    } catch {
-      console.error('Failed to add job')
-    }
-    setAdding(null)
-  }
+async function fetchJobicy(user: string) {
+  try {
+    const tag = user === 'caylah' ? 'operations' : 'customer-success'
+    const res = await fetch(`https://jobicy.com/api/v2/remote-jobs?tag=${tag}&count=50`, {
+      next: { revalidate: 3600 }
+    })
+    const data = await res.json()
+    return (data.jobs || [])
+      .filter((job: any) => matchesUser(job.jobTitle, job.jobDescription || '', user))
+      .map((job: any) => ({
+        id: `jobicy-${job.id}`,
+        company: job.companyName,
+        role: job.jobTitle,
+        platform: 'Jobicy',
+        url: job.url,
+        salary: job.annualSalaryMin
+          ? `$${job.annualSalaryMin.toLocaleString()} – $${job.annualSalaryMax?.toLocaleString()}/yr`
+          : null,
+        postedAt: job.pubDate,
+        source: 'jobicy',
+        description: job.jobDescription?.replace(/<[^>]*>/g, '').slice(0, 300) + '...',
+      }))
+  } catch { return [] }
+}
 
-  const timeAgo = (dateStr: string | null) => {
-    if (!dateStr) return 'Unknown'
-    const hours = (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60)
-    if (hours < 24) return `${Math.round(hours)}h ago`
-    if (hours < 48) return 'Yesterday'
-    return `${Math.round(hours / 24)}d ago`
-  }
+async function fetchArbeitnow(user: string) {
+  try {
+    const res = await fetch('https://www.arbeitnow.com/api/job-board-api', {
+      next: { revalidate: 3600 }
+    })
+    const data = await res.json()
+    return (data.data || [])
+      .filter((job: any) => matchesUser(job.title, job.description || '', user))
+      .map((job: any) => ({
+        id: `arbeitnow-${job.slug}`,
+        company: job.company_name,
+        role: job.title,
+        platform: 'Arbeitnow',
+        url: job.url,
+        salary: null,
+        postedAt: job.created_at
+          ? new Date(job.created_at * 1000).toISOString()
+          : null,
+        source: 'arbeitnow',
+        description: job.description?.replace(/<[^>]*>/g, '').slice(0, 300) + '...',
+      }))
+  } catch { return [] }
+}
 
-  const isFresh = (dateStr: string | null) => {
-    if (!dateStr) return false
-    return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60) <= 48
-  }
+async function fetchHimalayas(user: string) {
+  try {
+    const keyword = user === 'caylah' ? 'operations' : 'customer-success'
+    const res = await fetch(`https://himalayas.app/jobs/api?q=${keyword}&limit=50`, {
+      next: { revalidate: 3600 }
+    })
+    const data = await res.json()
+    return (data.jobs || [])
+      .filter((job: any) => matchesUser(job.title, job.description || '', user))
+      .map((job: any) => ({
+        id: `himalayas-${job.slug}`,
+        company: job.company?.name || 'Unknown',
+        role: job.title,
+        platform: 'Himalayas',
+        url: `https://himalayas.app/jobs/${job.slug}`,
+        salary: job.salary || null,
+        postedAt: job.createdAt,
+        source: 'himalayas',
+        description: job.description?.replace(/<[^>]*>/g, '').slice(0, 300) + '...',
+      }))
+  } catch { return [] }
+}
 
-  const accent = isKyle ? '#7c3aed' : '#2563eb'
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const user = searchParams.get('user') || 'caylah'
 
-  return (
-    <div>
-      {/* Header */}
-      <div className="flex-between" style={{ marginBottom: 8 }}>
-        <div>
-          <div className="section-title">Live Job Feed</div>
-          <div className="section-sub">
-            {isKyle
-              ? 'Customer Success · LegalTech · Account Management · Marketing Ops'
-              : 'Revenue Operations · GTM Ops · Business Operations · Systems'}
-          </div>
-        </div>
-        <button
-          onClick={loadFeed}
-          style={{
-            padding: '8px 16px', background: '#1e293b',
-            color: '#94a3b8', border: 'none', borderRadius: 8,
-            fontSize: 13, cursor: 'pointer',
-          }}
-        >
-          🔄 Refresh
-        </button>
-      </div>
+  const [remotive, wwr, jobicy, arbeitnow, himalayas] = await Promise.all([
+    fetchRemotive(user),
+    fetchWeworkremotely(user),
+    fetchJobicy(user),
+    fetchArbeitnow(user),
+    fetchHimalayas(user),
+  ])
 
-      {/* Stats bar */}
-      <div style={{
-        background: '#0f172a', border: '1px solid #1e293b',
-        borderRadius: 10, padding: '10px 16px',
-        display: 'flex', gap: 24, marginBottom: 20,
-        fontSize: 13,
-      }}>
-        <span style={{ color: '#94a3b8' }}>
-          <span style={{ color: 'white', fontWeight: 600 }}>{jobs.length}</span> roles found
-        </span>
-        <span style={{ color: '#94a3b8' }}>
-          <span style={{ color: '#4ade80', fontWeight: 600 }}>
-            {jobs.filter(j => isFresh(j.postedAt)).length}
-          </span> fresh (&lt;48h)
-        </span>
-        <span style={{ color: '#94a3b8' }}>
-          Sources: <span style={{ color: 'white' }}>Remotive · We Work Remotely</span>
-        </span>
-      </div>
+  const combined = [...remotive, ...wwr, ...jobicy, ...arbeitnow, ...himalayas]
 
-      {/* Feed */}
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: 60 }}>
-          <div style={{ color: '#64748b', fontSize: 14 }}>Scanning job sources...</div>
-          <div style={{ color: '#334155', fontSize: 12, marginTop: 8 }}>
-            Pulling from Remotive and We Work Remotely
-          </div>
-        </div>
-      ) : jobs.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 60 }}>
-          <div style={{ color: '#64748b', fontSize: 14 }}>No matching roles found right now.</div>
-          <div style={{ color: '#334155', fontSize: 12, marginTop: 8 }}>Try refreshing in a few hours.</div>
-        </div>
-      ) : (
-        <div>
-          {jobs.map((job) => (
-            <div
-              key={job.id}
-              style={{
-                background: '#0f172a',
-                border: `1px solid ${added.has(job.id) ? '#166534' : '#1e293b'}`,
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 10,
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 14,
-              }}
-            >
-              {/* Avatar */}
-              <div style={{
-                width: 42, height: 42, borderRadius: 10,
-                background: '#1e293b', display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                fontSize: 16, fontWeight: 700, color: '#94a3b8',
-                flexShrink: 0,
-              }}>
-                {job.company?.[0] || '?'}
-              </div>
+  // Remove duplicates by company + role
+  const seen = new Set()
+  const unique = combined.filter(job => {
+    const key = `${job.company}-${job.role}`.toLowerCase()
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 
-              {/* Content */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                  <span style={{ color: 'white', fontWeight: 600, fontSize: 15 }}>
-                    {job.company}
-                  </span>
-                  {isFresh(job.postedAt) && (
-                    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: '#14532d', color: '#4ade80' }}>
-                      🔥 Fresh
-                    </span>
-                  )}
-                  <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: '#1e293b', color: '#64748b' }}>
-                    {job.platform}
-                  </span>
-                  <span style={{ fontSize: 12, color: '#475569', marginLeft: 'auto' }}>
-                    {timeAgo(job.postedAt)}
-                  </span>
-                </div>
+  // Sort freshest first
+  unique.sort((a, b) => {
+    const dateA = a.postedAt ? new Date(a.postedAt).getTime() : 0
+    const dateB = b.postedAt ? new Date(b.postedAt).getTime() : 0
+    return dateB - dateA
+  })
 
-                <div style={{ color: '#94a3b8', fontSize: 14, marginBottom: 4 }}>
-                  {job.role}
-                </div>
-
-                {job.description && (
-                  <div style={{ color: '#475569', fontSize: 12, lineHeight: 1.5, marginBottom: 6 }}>
-                    {job.description}
-                  </div>
-                )}
-
-                {job.salary && (
-                  <div style={{ color: '#4ade80', fontSize: 12 }}>
-                    {job.salary}
-                  </div>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
-                <button
-                  onClick={() => addToPipeline(job)}
-                  disabled={adding === job.id || added.has(job.id)}
-                  style={{
-                    padding: '7px 14px',
-                    background: added.has(job.id) ? '#166534' : accent,
-                    color: 'white', border: 'none',
-                    borderRadius: 8, fontSize: 12,
-                    fontWeight: 600, cursor: added.has(job.id) ? 'default' : 'pointer',
-                    whiteSpace: 'nowrap',
-                    opacity: adding === job.id ? 0.7 : 1,
-                  }}
-                >
-                  {added.has(job.id) ? '✓ Added' : adding === job.id ? '...' : '+ Pipeline'}
-                </button>
-                <a href={job.url} target="_blank" rel="noopener noreferrer">
-                  <button style={{
-                    width: '100%', padding: '7px 14px',
-                    background: '#1e293b', color: '#94a3b8',
-                    border: 'none', borderRadius: 8,
-                    fontSize: 12, cursor: 'pointer',
-                  }}>
-                    View →
-                  </button>
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+  return NextResponse.json(unique.slice(0, 100))
 }
