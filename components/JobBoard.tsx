@@ -56,7 +56,7 @@ export default function JobBoard({ activeUser }: Props) {
   }
 
   const sortedJobs = [...jobs].sort((a, b) => scoreJob(b) - scoreJob(a))
-  const topJobs = sortedJobs.slice(0, 5)
+  const topJobs = sortedJobs.slice(0, limit || 5)
 
   const updateStage = (id: string, stage: Job['stage']) => {
     setJobs((prev) =>
