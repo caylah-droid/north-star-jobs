@@ -29,7 +29,7 @@ export default function Metrics({ activeUser }: Props) {
       </div>
 
       <div className="card">
-        <div style={{ fontSize: 14, fontWeight: 600, color: white, marginBottom: 16 }}>Strategy Health</div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 16 }}>Strategy Health</div>
         {[
           { label: 'Response rate', value: 'No data yet' },
           { label: 'Outreach conversion', value: 'No data yet' },
