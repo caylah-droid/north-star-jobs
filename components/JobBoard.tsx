@@ -24,7 +24,7 @@ const stages = [
   { id: 'rejected', label: '❌ Rejected' },
 ]
 
-export default function JobBoard({ activeUser, limit }: Props)
+export default function JobBoard({ activeUser, limit }: Props) {
   const isKyle = activeUser === 'kyle'
 
   // TEMP DATA (replace later)
