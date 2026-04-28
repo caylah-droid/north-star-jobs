@@ -12,12 +12,12 @@ body {
 }
 
 .header {
-  background: #0d0d14;
-  border-bottom: 1px solid #1e293b;
-  padding: 16px;
+  background: #0f172a;        /* clean dark navy */
+  color: white;               /* ensures text is visible */
+  padding: 16px 24px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
 }
 
 .header h1 { font-size: 20px; font-weight: 700; color: white; }
