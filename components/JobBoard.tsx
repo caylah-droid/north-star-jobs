@@ -29,11 +29,14 @@ const stages = [
   { id: 'rejected', label: '❌ Rejected' },
 ]
 
+const ZAR = 18.5
+
 export default function JobBoard({ activeUser }: Props) {
   const isKyle = activeUser === 'kyle'
   const [showModal, setShowModal] = useState(false)
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
+  const [updating, setUpdating] = useState<string | null>(null)
 
   const loadJobs = async () => {
     setLoading(true)
@@ -45,8 +48,37 @@ export default function JobBoard({ activeUser }: Props) {
 
   useEffect(() => { loadJobs() }, [activeUser])
 
-  const topJobs = jobs.slice(0, 5)
+  const updateStage = async (jobId: string, stage: string) => {
+    setUpdating(jobId)
+    await fetch(`/api/jobs/${jobId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stage }),
+    })
+    await loadJobs()
+    setUpdating(null)
+  }
+
+  const deleteJob = async (jobId: string) => {
+    if (!confirm('Remove this opportunity?')) return
+    await fetch(`/api/jobs/${jobId}`, { method: 'DELETE' })
+    await loadJobs()
+  }
+
+  const topJobs = jobs.filter(j => j.stage !== 'rejected').slice(0, 5)
   const jobsByStage = (stage: string) => jobs.filter((j) => j.stage === stage)
+
+  const nextStage: Record<string, string> = {
+    prospect: 'applied',
+    applied: 'interview',
+    interview: 'offer',
+  }
+
+  const nextLabel: Record<string, string> = {
+    prospect: 'Apply',
+    applied: 'Interview',
+    interview: 'Offer',
+  }
 
   return (
     <div>
@@ -94,11 +126,14 @@ export default function JobBoard({ activeUser }: Props) {
                   {job.isHighValue && (
                     <span className="tier-badge" style={{ background: '#422006', color: '#fbbf24' }}>💰 High Value</span>
                   )}
+                  <span className="tier-badge" style={{ background: '#1e293b', color: '#94a3b8' }}>
+                    {stages.find(s => s.id === job.stage)?.label}
+                  </span>
                 </div>
                 <div className="company-why">{job.role} · {job.platform}</div>
                 {job.salaryMin && (
                   <div style={{ fontSize: 12, color: '#4ade80', marginTop: 2 }}>
-                    ${job.salaryMin.toLocaleString()}/mo · R{(job.salaryMin * 18.5).toLocaleString()}/mo
+                    ${job.salaryMin.toLocaleString()}/mo · R{(job.salaryMin * ZAR).toLocaleString()}/mo
                   </div>
                 )}
               </div>
@@ -108,7 +143,26 @@ export default function JobBoard({ activeUser }: Props) {
                     <button className="btn-secondary">View</button>
                   </a>
                 )}
-                <button className={`btn-primary ${isKyle ? 'kyle' : ''}`}>Apply</button>
+                {nextStage[job.stage] && (
+                  <button
+                    className={`btn-primary ${isKyle ? 'kyle' : ''}`}
+                    onClick={() => updateStage(job.id, nextStage[job.stage])}
+                    disabled={updating === job.id}
+                    style={{ opacity: updating === job.id ? 0.6 : 1 }}
+                  >
+                    {updating === job.id ? '...' : nextLabel[job.stage]}
+                  </button>
+                )}
+                <button
+                  onClick={() => updateStage(job.id, 'rejected')}
+                  style={{
+                    padding: '6px 10px', background: '#1e293b',
+                    color: '#ef4444', border: 'none', borderRadius: 8,
+                    fontSize: 12, cursor: 'pointer',
+                  }}
+                >
+                  ✕
+                </button>
               </div>
             </div>
           ))}
@@ -135,15 +189,42 @@ export default function JobBoard({ activeUser }: Props) {
             ) : (
               jobsByStage(stage.id).map((job) => (
                 <div key={job.id} style={{
-                  background: '#1e293b',
-                  borderRadius: 8,
-                  padding: '10px',
-                  marginBottom: 8,
-                  fontSize: 13,
+                  background: '#1e293b', borderRadius: 8,
+                  padding: 10, marginBottom: 8,
                 }}>
-                  <div style={{ color: 'white', fontWeight: 600 }}>{job.company}</div>
-                  <div style={{ color: '#64748b', marginTop: 2 }}>{job.role}</div>
-                  {job.isFresh && <div style={{ color: '#4ade80', fontSize: 11, marginTop: 4 }}>🔥 Fresh</div>}
+                  <div style={{ color: 'white', fontWeight: 600, fontSize: 13 }}>{job.company}</div>
+                  <div style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>{job.role}</div>
+                  {job.salaryMin && (
+                    <div style={{ color: '#4ade80', fontSize: 11, marginTop: 4 }}>
+                      ${job.salaryMin.toLocaleString()}/mo
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                    {nextStage[job.stage] && (
+                      <button
+                        onClick={() => updateStage(job.id, nextStage[job.stage])}
+                        disabled={updating === job.id}
+                        style={{
+                          flex: 1, padding: '4px 0', fontSize: 11,
+                          background: isKyle ? '#7c3aed' : '#2563eb',
+                          color: 'white', border: 'none',
+                          borderRadius: 6, cursor: 'pointer',
+                        }}
+                      >
+                        {updating === job.id ? '...' : nextLabel[job.stage]}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => deleteJob(job.id)}
+                      style={{
+                        padding: '4px 8px', fontSize: 11,
+                        background: '#0f172a', color: '#ef4444',
+                        border: 'none', borderRadius: 6, cursor: 'pointer',
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               ))
             )}
