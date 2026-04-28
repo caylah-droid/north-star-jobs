@@ -20,7 +20,7 @@ body {
   justify-content: space-between;
 }
 
-.header h1 { font-size: 20px; font-weight: 700; color: white; }
+.header h1 { font-size: 20px; font-weight: 700; color: "white"; }
 .header p { font-size: 12px; color: #64748b; margin-top: 2px; }
 
 .user-toggle {
@@ -45,12 +45,12 @@ body {
 
 .toggle-btn.active-caylah {
   background: #2563eb;
-  color: white;
+  color: "white";
 }
 
 .toggle-btn.active-kyle {
   background: #7c3aed;
-  color: white;
+  color: "white";
 }
 
 .accent-bar { height: 2px; }
@@ -79,13 +79,13 @@ body {
 
 .tab-btn.active {
   background: #1e293b;
-  color: white;
+  color: "white";
   border-bottom: 2px solid #2563eb;
 }
 
 .content { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
 
-.section-title { font-size: 18px; font-weight: 600; color: white; margin-bottom: 4px; }
+.section-title { font-size: 18px; font-weight: 600; color: "white"; margin-bottom: 4px; }
 .section-sub { font-size: 14px; color: #64748b; margin-bottom: 24px; }
 
 .card {
@@ -129,7 +129,7 @@ body {
 
 .priority-dot { color: #f87171; font-size: 12px; margin-left: 8px; }
 
-.action-title { font-size: 15px; font-weight: 600; color: white; margin-bottom: 4px; }
+.action-title { font-size: 15px; font-weight: 600; color: "white"; margin-bottom: 4px; }
 .action-desc { font-size: 13px; color: #64748b; }
 
 .done-btn {
@@ -141,7 +141,7 @@ body {
   border: none;
   cursor: pointer;
   background: #2563eb;
-  color: white;
+  color: "white";
   transition: background 0.2s;
 }
 
@@ -185,7 +185,7 @@ body {
 }
 
 .company-info { flex: 1; }
-.company-name { font-size: 15px; font-weight: 600; color: white; }
+.company-name { font-size: 15px; font-weight: 600; color: "white"; }
 
 .tier-badge {
   display: inline-block;
@@ -217,7 +217,7 @@ body {
 .btn-primary {
   padding: 6px 12px;
   background: #2563eb;
-  color: white;
+  color: "white";
   border: none;
   border-radius: 8px;
   font-size: 12px;
@@ -234,7 +234,7 @@ body {
   font-weight: 600;
   border: none;
   cursor: pointer;
-  color: white;
+  color: "white";
   background: #2563eb;
 }
 
@@ -264,7 +264,7 @@ body {
 .metric-emoji { font-size: 24px; margin-bottom: 8px; }
 .metric-value { font-size: 36px; font-weight: 700; color: #60a5fa; margin-bottom: 4px; }
 .metric-value.kyle { color: #a78bfa; }
-.metric-label { font-size: 14px; font-weight: 600; color: white; }
+.metric-label { font-size: 14px; font-weight: 600; color: "white"; }
 .metric-sub { font-size: 12px; color: #64748b; margin-top: 2px; }
 
 .health-row {
@@ -336,7 +336,7 @@ body {
   margin-bottom: 12px;
 }
 
-.section-label h3 { font-size: 14px; font-weight: 600; color: white; }
+.section-label h3 { font-size: 14px; font-weight: 600; color: "white"; }
 
 .count-badge {
   font-size: 11px;
