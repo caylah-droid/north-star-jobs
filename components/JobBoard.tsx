@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 
-type Props = { activeUser: 'caylah' | 'kyle' }
+type Props = { 
+  activeUser: 'caylah' | 'kyle'
+  limit?: number
+}
 
 type Job = {
   id: string
