@@ -98,7 +98,7 @@ export default function JobBoard({ activeUser }: Props) {
                 <div className="company-why">{job.role} · {job.platform}</div>
                 {job.salaryMin && (
                   <div style={{ fontSize: 12, color: '#4ade80', marginTop: 2 }}>
-                    ${job.salaryMin.toLocaleString()} – ${job.salaryMax?.toLocaleString()}
+                    ${job.salaryMin.toLocaleString()}/mo · R{(job.salaryMin * 18.5).toLocaleString()}/mo
                   </div>
                 )}
               </div>
