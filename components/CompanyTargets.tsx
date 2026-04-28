@@ -1,66 +1,35 @@
 'use client'
 
-import { useState } from 'react'
-
 type Props = { activeUser: 'caylah' | 'kyle' }
 
-type Status = 'none' | 'research' | 'contacted' | 'replied'
-
-type Company = {
-  name: string
-  track: string
-  tier: number
-  why: string
-  status: Status
-}
-
-const caylahCompanies: Company[] = [
-  { name: 'Notion', track: 'RevOps', tier: 1, why: 'Operations-native product', status: 'none' },
-  { name: 'Zapier', track: 'GTM Ops', tier: 1, why: 'Automation-first', status: 'none' },
-  { name: 'HubSpot', track: 'RevOps', tier: 1, why: 'Large RevOps function', status: 'none' },
-  { name: 'Chargebee', track: 'RevOps', tier: 2, why: 'Series C growth', status: 'none' },
-  { name: 'Deel', track: 'GTM Ops', tier: 2, why: 'Remote-first', status: 'none' },
+const caylahCompanies = [
+  { name: 'Notion', track: 'RevOps', tier: 1, why: 'Operations-native product' },
+  { name: 'Zapier', track: 'GTM Ops', tier: 1, why: 'Automation-first culture' },
+  { name: 'HubSpot', track: 'RevOps', tier: 1, why: 'Large global RevOps team' },
+  { name: 'Chargebee', track: 'RevOps', tier: 2, why: 'Series C growth' },
+  { name: 'Deel', track: 'GTM Ops', tier: 2, why: 'Remote-first, SA-friendly' },
 ]
 
-const kyleCompanies: Company[] = [
-  { name: 'Clio', track: 'LegalTech CSM', tier: 1, why: 'Legal platform leader', status: 'none' },
-  { name: 'Everlaw', track: 'LegalTech CSM', tier: 1, why: 'eDiscovery platform', status: 'none' },
-  { name: 'LEAP Legal', track: 'LegalTech CSM', tier: 1, why: 'Global legal SaaS', status: 'none' },
-  { name: 'Sprout Social', track: 'Marketing Ops', tier: 2, why: 'Strong CSM culture', status: 'none' },
-  { name: 'Atticus', track: 'LegalTech CSM', tier: 2, why: 'Mission-driven', status: 'none' },
+const kyleCompanies = [
+  { name: 'Clio', track: 'LegalTech CSM', tier: 1, why: 'Global legal SaaS leader' },
+  { name: 'Everlaw', track: 'LegalTech CSM', tier: 1, why: 'eDiscovery platform' },
+  { name: 'LEAP', track: 'LegalTech CSM', tier: 1, why: 'Legal SaaS, global growth' },
+  { name: 'Sprout Social', track: 'Marketing Ops', tier: 2, why: 'Strong CSM org' },
+  { name: 'Atticus', track: 'LegalTech CSM', tier: 2, why: 'Mission-driven legal tech' },
 ]
 
 export default function CompanyTargets({ activeUser }: Props) {
-  const initial = activeUser === 'caylah' ? caylahCompanies : kyleCompanies
-  const [companies, setCompanies] = useState(initial)
+  const companies = activeUser === 'caylah' ? caylahCompanies : kyleCompanies
   const isKyle = activeUser === 'kyle'
-
-  const updateStatus = (name: string, status: Status) => {
-    setCompanies((prev) =>
-      prev.map((c) => (c.name === name ? { ...c, status } : c))
-    )
-  }
-
-  const getStatusLabel = (status: Status) => {
-    switch (status) {
-      case 'research':
-        return '🔍 Researched'
-      case 'contacted':
-        return '📨 Contacted'
-      case 'replied':
-        return '💬 Replied'
-      default:
-        return '⚪ Not started'
-    }
-  }
 
   return (
     <div>
+      {/* HEADER */}
       <div className="flex-between">
         <div>
           <div className="section-title">Target Companies</div>
           <div className="section-sub">
-            Work these like a pipeline. Tier 1 first.
+            Work these like a pipeline. Start with Tier 1.
           </div>
         </div>
         <button className={`btn-add ${isKyle ? 'kyle' : ''}`}>
@@ -68,52 +37,51 @@ export default function CompanyTargets({ activeUser }: Props) {
         </button>
       </div>
 
-      {companies.map((company) => (
-        <div key={company.name} className="company-card">
-          <div className="company-avatar">{company.name[0]}</div>
+      {/* GRID */}
+      <div className="company-grid">
+        {companies.map((company) => (
+          <div key={company.name} className="company-card">
+            
+            {/* TOP ROW */}
+            <div className="company-top">
+              <div className="company-avatar">
+                {company.name[0]}
+              </div>
 
-          <div className="company-info">
-            <div className="company-name">
-              {company.name}
+              <div>
+                <div className="company-name">
+                  {company.name}
+                </div>
+                <div className="company-track">
+                  {company.track}
+                </div>
+              </div>
+            </div>
 
+            {/* TAGS */}
+            <div className="company-tags">
               <span className={`tier-badge tier-${company.tier}`}>
-                {company.tier === 1 ? 'Dream' : 'Strong Fit'}
+                {company.tier === 1 ? 'Tier 1' : 'Tier 2'}
               </span>
-
-              <span className="track-label">{company.track}</span>
+              <span className="status-badge">Not started</span>
             </div>
 
-            <div className="company-why">{company.why}</div>
+            {/* WHY */}
+            <div className="company-why">
+              {company.why}
+            </div>
 
-            <div style={{ fontSize: 12, marginTop: 4 }}>
-              {getStatusLabel(company.status)}
+            {/* ACTIONS */}
+            <div className="company-actions">
+              <button className="btn-secondary">Research</button>
+              <button className={`btn-primary ${isKyle ? 'kyle' : ''}`}>
+                Outreach
+              </button>
+              <button className="btn-secondary">Reply</button>
             </div>
           </div>
-
-          <div className="company-actions">
-            <button
-              className="btn-secondary"
-              onClick={() => updateStatus(company.name, 'research')}
-            >
-              Research
-            </button>
-
-            <button
-              className={`btn-primary ${isKyle ? 'kyle' : ''}`}
-              onClick={() => updateStatus(company.name, 'contacted')}
-            >
-              Outreach
-            </button>
-
-            <button
-              className="btn-secondary"
-              onClick={() => updateStatus(company.name, 'replied')}
-            >
-              Reply
-            </button>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }
