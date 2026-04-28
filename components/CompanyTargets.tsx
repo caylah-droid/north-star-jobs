@@ -1,5 +1,8 @@
 'use client'
 
+import { useState } from 'react'
+import AddCompanyModal from './AddCompanyModal'
+
 type Props = { activeUser: 'caylah' | 'kyle' }
 
 const caylahCompanies = [
@@ -19,38 +22,67 @@ const kyleCompanies = [
 ]
 
 export default function CompanyTargets({ activeUser }: Props) {
+  const [showModal, setShowModal] = useState(false)
+
   const companies = activeUser === 'caylah' ? caylahCompanies : kyleCompanies
   const isKyle = activeUser === 'kyle'
 
   return (
     <div>
+      {/* HEADER */}
       <div className="flex-between">
         <div>
           <div className="section-title">Target Companies</div>
-          <div className="section-sub">Ranked by fit and probability. Start at Tier 1.</div>
+          <div className="section-sub">
+            Ranked by fit and probability. Start at Tier 1.
+          </div>
         </div>
-        <button className={`btn-add ${isKyle ? 'kyle' : ''}`}>+ Add Company</button>
+
+        <button
+          className={`btn-add ${isKyle ? 'kyle' : ''}`}
+          onClick={() => setShowModal(true)}
+        >
+          + Add Company
+        </button>
       </div>
 
+      {/* LIST */}
       {companies.map((company) => (
         <div key={company.name} className="company-card">
           <div className="company-avatar">{company.name[0]}</div>
+
           <div className="company-info">
             <div className="company-name">
               {company.name}
+
               <span className={`tier-badge tier-${company.tier}`}>
                 {company.tier === 1 ? 'Dream' : 'Strong Fit'}
               </span>
+
               <span className="track-label">{company.track}</span>
             </div>
+
             <div className="company-why">{company.why}</div>
           </div>
+
           <div className="company-actions">
             <button className="btn-secondary">Research</button>
-            <button className={`btn-primary ${isKyle ? 'kyle' : ''}`}>Outreach</button>
+
+            <button className={`btn-primary ${isKyle ? 'kyle' : ''}`}>
+              Outreach
+            </button>
           </div>
         </div>
       ))}
+
+      {/* MODAL */}
+      {showModal && (
+        <AddCompanyModal
+          activeUser={activeUser}
+          onClose={() => setShowModal(false)}
+          onSaved={() => setShowModal(false)}
+        />
+      )}
     </div>
   )
 }
