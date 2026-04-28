@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-function scoreJob(job: any): number {
+const ZAR_RATE = 18.5
+
+function scoreJob(job: any, user: string): number {
   let score = 0
 
   // Freshness — highest weight
@@ -12,8 +14,9 @@ function scoreJob(job: any): number {
     else if (hoursOld <= 72) score += 15
   }
 
-  // Salary stated
-  if (job.salaryMin) score += 30
+  // High value threshold per user (monthly USD)
+  const threshold = user === 'caylah' ? 5400 : 2700
+  if (job.salaryMin && job.salaryMin >= threshold) score += 30
 
   // Platform quality
   const platformScores: Record<string, number> = {
@@ -33,20 +36,18 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const user = searchParams.get('user') || 'caylah'
 
-  const jobs = await prisma.job.findMany({
-    where: { user },
-  })
+  const jobs = await prisma.job.findMany({ where: { user } })
 
-  // Score and sort
+  const threshold = user === 'caylah' ? 5400 : 2700
+
   const scored = await Promise.all(
     jobs.map(async (job) => {
-      const score = scoreJob(job)
+      const score = scoreJob(job, user)
       const isFresh = job.postedAt
         ? (Date.now() - new Date(job.postedAt).getTime()) / (1000 * 60 * 60) <= 48
         : false
-      const isHighValue = job.salaryMin ? job.salaryMin >= 80000 : false
+      const isHighValue = job.salaryMin ? job.salaryMin >= threshold : false
 
-      // Update score in DB
       await prisma.job.update({
         where: { id: job.id },
         data: { priorityScore: score, isFresh, isHighValue },
@@ -56,9 +57,7 @@ export async function GET(request: Request) {
     })
   )
 
-  // Return sorted by score
   scored.sort((a, b) => b.priorityScore - a.priorityScore)
-
   return NextResponse.json(scored)
 }
 
@@ -69,7 +68,9 @@ export async function POST(request: Request) {
   const isFresh = postedAt
     ? (Date.now() - postedAt.getTime()) / (1000 * 60 * 60) <= 48
     : false
-  const isHighValue = body.salaryMin ? parseInt(body.salaryMin) >= 80000 : false
+
+  const threshold = body.user === 'caylah' ? 5400 : 2700
+  const isHighValue = body.salaryMin ? parseInt(body.salaryMin) >= threshold : false
 
   const platformScores: Record<string, number> = {
     'Company Website': 20,
