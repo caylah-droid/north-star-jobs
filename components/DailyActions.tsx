@@ -1,67 +1,115 @@
 'use client'
 
+import { useState } from 'react'
+
 type Props = { activeUser: 'caylah' | 'kyle' }
 
-const caylahActions = [
-  { id: 1, type: 'Apply', emoji: '📨', title: 'Apply to 2 targeted roles', description: 'RevOps or GTM Ops at Series A–C SaaS. Direct career page only.', priority: 'high' },
-  { id: 2, type: 'Outreach', emoji: '🤝', title: 'Send 1 warm outreach', description: 'Find hiring manager or ops leader on LinkedIn. Connect before applying.', priority: 'high' },
-  { id: 3, type: 'Follow Up', emoji: '🔁', title: 'Follow up on 2 applications', description: 'Any application older than 5 days with no response.', priority: 'medium' },
-  { id: 4, type: 'Proof of Work', emoji: '⚒️', title: 'Create 1 proof-of-work asset', description: 'Loom audit, process doc, or LinkedIn post as The Operator.', priority: 'medium' },
+type Action = {
+  id: number
+  type: string
+  emoji: string
+  title: string
+  description: string
+  priority: 'high' | 'medium'
+  target: number
+}
+
+const caylahActions: Action[] = [
+  { id: 1, type: 'Apply', emoji: '📨', title: 'Apply to targeted roles', description: 'RevOps or GTM Ops at SaaS companies.', priority: 'high', target: 2 },
+  { id: 2, type: 'Outreach', emoji: '🤝', title: 'Send outreach', description: 'Connect with hiring manager before applying.', priority: 'high', target: 1 },
+  { id: 3, type: 'Follow Up', emoji: '🔁', title: 'Follow up', description: 'Applications older than 5 days.', priority: 'medium', target: 2 },
+  { id: 4, type: 'Proof of Work', emoji: '⚒️', title: 'Create proof-of-work', description: 'Loom audit or process improvement.', priority: 'medium', target: 1 },
 ]
 
-const kyleActions = [
-  { id: 1, type: 'Research', emoji: '🔍', title: 'Research 1 target company', description: 'LegalTech or Marketing Ops. Find the CSM team and hiring manager.', priority: 'high' },
-  { id: 2, type: 'Apply', emoji: '📨', title: 'Apply to 2 targeted roles', description: 'CSM or Account Manager at LegalTech or Marketing platform.', priority: 'high' },
-  { id: 3, type: 'Outreach', emoji: '🤝', title: 'Send 3 outreach messages', description: 'LinkedIn connections with personalised notes referencing legal or marketing ops.', priority: 'high' },
-  { id: 4, type: 'Follow Up', emoji: '🔁', title: 'Follow up on 3 conversations', description: 'Any outreach or application older than 4 days with no response.', priority: 'medium' },
+const kyleActions: Action[] = [
+  { id: 1, type: 'Research', emoji: '🔍', title: 'Research company', description: 'Find CSM team and decision makers.', priority: 'high', target: 1 },
+  { id: 2, type: 'Apply', emoji: '📨', title: 'Apply to targeted roles', description: 'CSM or Account roles.', priority: 'high', target: 2 },
+  { id: 3, type: 'Outreach', emoji: '🤝', title: 'Send outreach', description: 'LinkedIn personalised messages.', priority: 'high', target: 3 },
+  { id: 4, type: 'Follow Up', emoji: '🔁', title: 'Follow up', description: 'Conversations older than 4 days.', priority: 'medium', target: 3 },
 ]
 
 export default function DailyActions({ activeUser }: Props) {
   const actions = activeUser === 'caylah' ? caylahActions : kyleActions
   const isKyle = activeUser === 'kyle'
 
+  const [progress, setProgress] = useState<Record<number, number>>({})
+
+  const increment = (id: number, max: number) => {
+    setProgress((prev) => {
+      const current = prev[id] || 0
+      if (current >= max) return prev
+      return { ...prev, [id]: current + 1 }
+    })
+  }
+
+  const totalTargets = actions.reduce((sum, a) => sum + a.target, 0)
+  const totalDone = Object.values(progress).reduce((sum, v) => sum + v, 0)
+
   return (
     <div>
       <div className="section-title">Today's Mission</div>
       <div className="section-sub">
         {isKyle
-          ? 'LegalTech & Marketing Ops targeting — relationships, conversations'
-          : 'RevOps & GTM Ops targeting — systems, proof, outreach'}
+          ? 'Revenue & relationships focus'
+          : 'Systems, ops & execution focus'}
       </div>
 
-      {actions.map((action) => (
-        <div key={action.id} className={`action-card ${action.priority === 'medium' ? 'medium' : ''}`}>
-          <span className="action-emoji">{action.emoji}</span>
-          <div className="action-body">
-            <div>
-              <span className={`action-tag ${isKyle ? 'kyle' : ''}`}>{action.type}</span>
-              {action.priority === 'high' && <span className="priority-dot">● High priority</span>}
+      {/* 🔥 PROGRESS BAR */}
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 14, marginBottom: 8 }}>
+          Progress: {totalDone}/{totalTargets}
+        </div>
+        <div style={{ height: 6, background: '#1e293b', borderRadius: 6 }}>
+          <div
+            style={{
+              width: `${(totalDone / totalTargets) * 100}%`,
+              height: 6,
+              background: isKyle ? '#6366f1' : '#22c55e',
+              borderRadius: 6,
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ACTIONS */}
+      {actions.map((action) => {
+        const done = progress[action.id] || 0
+        const complete = done >= action.target
+
+        return (
+          <div
+            key={action.id}
+            className={`action-card ${action.priority === 'medium' ? 'medium' : ''}`}
+            style={{ opacity: complete ? 0.6 : 1 }}
+          >
+            <span className="action-emoji">{action.emoji}</span>
+
+            <div className="action-body">
+              <div>
+                <span className={`action-tag ${isKyle ? 'kyle' : ''}`}>
+                  {action.type}
+                </span>
+                {action.priority === 'high' && (
+                  <span className="priority-dot">● High</span>
+                )}
+              </div>
+
+              <div className="action-title">
+                {action.title} ({done}/{action.target})
+              </div>
+
+              <div className="action-desc">{action.description}</div>
             </div>
-            <div className="action-title">{action.title}</div>
-            <div className="action-desc">{action.description}</div>
-          </div>
-          <button className={`done-btn ${isKyle ? 'kyle' : ''}`}>Done</button>
-        </div>
-      ))}
 
-      <div className="card" style={{ marginTop: 24 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#94a3b8', marginBottom: 16 }}>Today's targets</div>
-        <div className="targets-grid">
-          {isKyle ? (
-            <>
-              <div className="target-item"><div className="target-number kyle">2</div><div className="target-label">Applications</div></div>
-              <div className="target-item"><div className="target-number kyle">3</div><div className="target-label">Outreach</div></div>
-              <div className="target-item"><div className="target-number kyle">3</div><div className="target-label">Follow ups</div></div>
-            </>
-          ) : (
-            <>
-              <div className="target-item"><div className="target-number">2</div><div className="target-label">Applications</div></div>
-              <div className="target-item"><div className="target-number">1</div><div className="target-label">Outreach</div></div>
-              <div className="target-item"><div className="target-number">1</div><div className="target-label">Proof of work</div></div>
-            </>
-          )}
-        </div>
-      </div>
+            <button
+              className={`done-btn ${isKyle ? 'kyle' : ''}`}
+              onClick={() => increment(action.id, action.target)}
+            >
+              {complete ? '✔ Done' : '+1'}
+            </button>
+          </div>
+        )
+      })}
     </div>
   )
 }
