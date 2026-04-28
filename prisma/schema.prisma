@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Job {
+  id              String     @id @default(cuid())
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  company         String
+  role            String
+  platform        String
+  url             String?
+  salaryMin       Int?
+  salaryMax       Int?
+  currency        String     @default("USD")
+  location        String?
+  remote          Boolean    @default(true)
+  user            String
+  track           String?
+  stage           String     @default("prospect")
+  priorityScore   Int        @default(0)
+  isFresh         Boolean    @default(false)
+  isHighValue     Boolean    @default(false)
+  isStrongMatch   Boolean    @default(false)
+  postedAt        DateTime?
+  appliedAt       DateTime?
+  lastActionAt    DateTime?
+  followUpDue     DateTime?
+  notes           String?
+  positioningNote String?
+  outreach        Outreach[]
+  actions         Action[]
+}
+
+model Outreach {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  jobId       String
+  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  contactName String?
+  contactRole String?
+  platform    String?
+  message     String?
+  sentAt      DateTime?
+  repliedAt   DateTime?
+  outcome     String?
+}
+
+model Action {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  jobId     String
+  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  type      String
+  notes     String?
+  doneAt    DateTime?
+}
+
+model Company {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  name          String
+  website       String?
+  industry      String?
+  size          String?
+  targetUser    String
+  track         String?
+  tier          Int       @default(2)
+  notes         String?
+  linkedinUrl   String?
+  hiringPageUrl String?
+  lastChecked   DateTime?
+}
