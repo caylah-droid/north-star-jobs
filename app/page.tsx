@@ -6,22 +6,30 @@ import DailyActions from '@/components/DailyActions'
 import JobBoard from '@/components/JobBoard'
 import CompanyTargets from '@/components/CompanyTargets'
 import Metrics from '@/components/Metrics'
+import AboutPage from '@/app/about/page'
 
 export default function Home() {
   const [activeUser, setActiveUser] = useState<'caylah' | 'kyle'>('caylah')
-  const [activeTab, setActiveTab] = useState<'actions' | 'jobs' | 'companies' | 'metrics'>('actions')
+
+  const [activeTab, setActiveTab] = useState<
+    'actions' | 'jobs' | 'companies' | 'metrics' | 'about'
+  >('actions')
+
+  const tabs = [
+    { id: 'actions', label: '⚡ Today' },
+    { id: 'jobs', label: '🎯 Opportunities' },
+    { id: 'companies', label: '🏢 Companies' },
+    { id: 'metrics', label: '📊 Metrics' },
+    { id: 'about', label: '📖 Overview' },
+  ]
 
   return (
     <main>
       <Header activeUser={activeUser} setActiveUser={setActiveUser} />
 
+      {/* NAV */}
       <div className="tab-nav">
-        {[
-          { id: 'actions', label: '⚡ Today' },
-          { id: 'jobs', label: '🎯 Opportunities' },
-          { id: 'companies', label: '🏢 Companies' },
-          { id: 'metrics', label: '📊 Metrics' },
-        ].map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
@@ -32,11 +40,27 @@ export default function Home() {
         ))}
       </div>
 
+      {/* CONTENT */}
       <div className="content">
-        {activeTab === 'actions' && <DailyActions activeUser={activeUser} />}
+        {activeTab === 'actions' && (
+          <>
+            {/* 🎯 FOCUS FIRST */}
+            <JobBoard activeUser={activeUser} limit={3} />
+
+            {/* ⚡ ACTIONS */}
+            <DailyActions activeUser={activeUser} />
+          </>
+        )}
+
         {activeTab === 'jobs' && <JobBoard activeUser={activeUser} />}
-        {activeTab === 'companies' && <CompanyTargets activeUser={activeUser} />}
+
+        {activeTab === 'companies' && (
+          <CompanyTargets activeUser={activeUser} />
+        )}
+
         {activeTab === 'metrics' && <Metrics activeUser={activeUser} />}
+
+        {activeTab === 'about' && <AboutPage />}
       </div>
     </main>
   )
