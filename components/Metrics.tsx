@@ -1,143 +1,68 @@
 'use client'
 
-type Props = {
-  activeUser: 'caylah' | 'kyle'
-  compact?: boolean
-}
+type Props = { activeUser: 'caylah' | 'kyle' }
 
-export default function Metrics({ activeUser, compact }: Props) {
-  const isKyle = activeUser === 'kyle'
-
-  // TEMP values (later from DB)
-  const data = {
-    applications: 4,
-    responseRate: 10,
-    interviewRate: 2,
-    outreachReplies: 15,
-  }
-
-  const getStatus = (value: number, good: number, ok: number) => {
-    if (value >= good) return { label: 'Good', color: '#22c55e' }
-    if (value >= ok) return { label: 'Okay', color: '#f59e0b' }
-    return { label: 'Low', color: '#ef4444' }
-  }
+export default function Metrics({ activeUser }: Props) {
+  const color = activeUser === 'caylah' ? 'blue' : 'purple'
 
   const stats = [
-    {
-      label: 'Applications',
-      value: data.applications,
-      sub: 'this week',
-      emoji: '📨',
-      status: null,
-    },
-    {
-      label: 'Response Rate',
-      value: `${data.responseRate}%`,
-      sub: 'target >15%',
-      emoji: '📬',
-      status: getStatus(data.responseRate, 15, 8),
-    },
-    {
-      label: 'Interview Rate',
-      value: `${data.interviewRate}%`,
-      sub: 'target >5%',
-      emoji: '🎙️',
-      status: getStatus(data.interviewRate, 5, 2),
-    },
-    {
-      label: 'Outreach Replies',
-      value: `${data.outreachReplies}%`,
-      sub: 'target >20%',
-      emoji: '💬',
-      status: getStatus(data.outreachReplies, 20, 10),
-    },
+    { label: 'Applications', value: '0', sub: 'this week', emoji: '📨' },
+    { label: 'Response Rate', value: '0%', sub: 'target: >15%', emoji: '📬' },
+    { label: 'Interview Rate', value: '0%', sub: 'target: >5%', emoji: '🎙️' },
+    { label: 'Outreach Replies', value: '0%', sub: 'target: >20%', emoji: '💬' },
   ]
 
   return (
     <div>
-      {!compact && (
-        <>
-          <div className="section-title">Pipeline Metrics</div>
-          <div className="section-sub">
-            Are you getting responses or being ignored?
-          </div>
-        </>
-      )}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-white">Pipeline Metrics</h2>
+        <p className="text-slate-400 text-sm mt-1">
+          Track what's working. Adapt what isn't.
+        </p>
+      </div>
 
-      <div className="metrics-grid">
+      <div className="grid grid-cols-2 gap-4 mb-8">
         {stats.map((stat) => (
-          <div key={stat.label} className="metric-card">
-            <div className="metric-emoji">{stat.emoji}</div>
-
-            <div className={`metric-value ${isKyle ? 'kyle' : ''}`}>
+          <div
+            key={stat.label}
+            className="bg-slate-900 border border-slate-800 rounded-lg p-5"
+          >
+            <div className="text-2xl mb-2">{stat.emoji}</div>
+            <div className={`text-3xl font-bold mb-1 ${
+              color === 'blue' ? 'text-blue-400' : 'text-purple-400'
+            }`}>
               {stat.value}
             </div>
-
-            <div className="metric-label">{stat.label}</div>
-            <div className="metric-sub">{stat.sub}</div>
-
-            {stat.status && (
-              <div
-                style={{
-                  marginTop: 6,
-                  fontSize: 12,
-                  color: stat.status.color,
-                }}
-              >
-                {stat.status.label}
-              </div>
-            )}
+            <div className="text-white text-sm font-medium">{stat.label}</div>
+            <div className="text-slate-500 text-xs mt-0.5">{stat.sub}</div>
           </div>
         ))}
       </div>
 
-      {!compact && (
-        <div className="card">
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: 'white',
-              marginBottom: 16,
-            }}
-          >
-            Strategy Health
+      {/* Warning zone */}
+      <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
+        <h3 className="text-sm font-semibold text-white mb-3">Strategy Health</h3>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-slate-400 text-sm">Response rate</span>
+            <span className="text-slate-500 text-sm">No data yet</span>
           </div>
-
-          <div className="health-row">
-            <span className="health-label">Response rate</span>
-            <span className="health-value">
-              {data.responseRate < 10
-                ? '⚠️ Improve targeting'
-                : 'On track'}
-            </span>
+          <div className="flex items-center justify-between">
+            <span className="text-slate-400 text-sm">Outreach conversion</span>
+            <span className="text-slate-500 text-sm">No data yet</span>
           </div>
-
-          <div className="health-row">
-            <span className="health-label">Outreach conversion</span>
-            <span className="health-value">
-              {data.outreachReplies < 15
-                ? '⚠️ Improve messaging'
-                : 'Working'}
-            </span>
-          </div>
-
-          <div className="health-row">
-            <span className="health-label">Applications sent</span>
-            <span className="health-value">
-              {data.applications < 5
-                ? '⚠️ Increase volume'
-                : 'Good'}
-            </span>
-          </div>
-
-          <div className="tip-box">
-            💡 If response rate is low → improve CV or targeting.  
-            💡 If outreach is low → improve messaging.  
-            💡 If interviews are low → refine positioning.
+          <div className="flex items-center justify-between">
+            <span className="text-slate-400 text-sm">Days since first application</span>
+            <span className="text-slate-500 text-sm">Not started</span>
           </div>
         </div>
-      )}
+        <div className="mt-4 p-3 bg-slate-800 rounded-lg">
+          <p className="text-slate-400 text-xs">
+            💡 Metrics will populate as you add jobs and track actions. 
+            If response rate drops below 15%, the system will flag a strategy change.
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
