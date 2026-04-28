@@ -27,7 +27,6 @@ const stages = [
 export default function JobBoard({ activeUser, limit }: Props) {
   const isKyle = activeUser === 'kyle'
 
-  // TEMP: replace later with DB
   const [jobs, setJobs] = useState<Job[]>([
     {
       id: '1',
@@ -35,7 +34,7 @@ export default function JobBoard({ activeUser, limit }: Props) {
       role: 'Operations Manager',
       salary: 12000,
       stage: 'prospect',
-      postedAt: Date.now() - 1000 * 60 * 60 * 5, // 5h ago
+      postedAt: Date.now() - 1000 * 60 * 60 * 5,
     },
     {
       id: '2',
@@ -43,7 +42,7 @@ export default function JobBoard({ activeUser, limit }: Props) {
       role: 'RevOps Lead',
       salary: 10000,
       stage: 'prospect',
-      postedAt: Date.now() - 1000 * 60 * 60 * 24, // 1 day
+      postedAt: Date.now() - 1000 * 60 * 60 * 24,
     },
   ])
 
@@ -57,10 +56,16 @@ export default function JobBoard({ activeUser, limit }: Props) {
     return freshness * 0.6 + salaryScore * 0.4
   }
 
+  const getFreshLabel = (job: Job) => {
+    const hoursOld = (Date.now() - job.postedAt) / (1000 * 60 * 60)
+    if (hoursOld < 24) return '🔥 Fresh'
+    if (hoursOld < 72) return '⏳ Recent'
+    return '❄️ Older'
+  }
+
   const sortedJobs = [...jobs].sort((a, b) => scoreJob(b) - scoreJob(a))
   const topJobs = limit ? sortedJobs.slice(0, limit) : sortedJobs
 
-  // 🚀 ACTIONS
   const updateStage = (id: string, stage: Job['stage']) => {
     setJobs((prev) =>
       prev.map((j) => (j.id === id ? { ...j, stage } : j))
@@ -79,19 +84,20 @@ export default function JobBoard({ activeUser, limit }: Props) {
               : 'Ops · Automation · Scale'}
           </div>
         </div>
-        <button className={`btn-add ${isKyle ? 'kyle' : ''}`}>
+
+        <button className={`btn-primary ${isKyle ? 'kyle' : ''}`}>
           + Add Job
         </button>
       </div>
 
-      {/* 🔥 TOP JOBS */}
-      <div className="section-label" style={{ marginBottom: 12 }}>
-        <h3>🔥 Highest Probability</h3>
+      {/* 🎯 TOP JOBS */}
+      <div className="section-label">
+        <h3>🎯 Focus Now</h3>
         <span className="count-badge">Top {limit || jobs.length}</span>
       </div>
 
       {topJobs.length === 0 ? (
-        <div className="top5-empty">
+        <div className="card">
           <p>No jobs yet.</p>
         </div>
       ) : (
@@ -100,19 +106,31 @@ export default function JobBoard({ activeUser, limit }: Props) {
             <div key={job.id} className="job-card">
               <div className="job-title">{job.role}</div>
               <div className="job-company">{job.company}</div>
+
               <div className="job-meta">
-                💰 ${job.salary} · 🔥 Fresh
+                💰 ${job.salary.toLocaleString()} · {getFreshLabel(job)}
               </div>
 
               <div className="job-actions">
-                <button onClick={() => updateStage(job.id, 'applied')}>
-                  🚀 Apply
+                <button
+                  className={`btn-primary ${isKyle ? 'kyle' : ''}`}
+                  onClick={() => updateStage(job.id, 'applied')}
+                >
+                  Apply
                 </button>
-                <button onClick={() => updateStage(job.id, 'prospect')}>
-                  👍 Save
+
+                <button
+                  className="btn-secondary"
+                  onClick={() => updateStage(job.id, 'prospect')}
+                >
+                  Save
                 </button>
-                <button onClick={() => updateStage(job.id, 'rejected')}>
-                  👎 Skip
+
+                <button
+                  className="btn-secondary"
+                  onClick={() => updateStage(job.id, 'rejected')}
+                >
+                  Skip
                 </button>
               </div>
             </div>
@@ -128,24 +146,26 @@ export default function JobBoard({ activeUser, limit }: Props) {
           </div>
 
           <div className="kanban-grid">
-            {stages.map((stage) => (
-              <div key={stage.id} className="kanban-col">
-                <div className="kanban-header">{stage.label}</div>
+            {stages.map((stage) => {
+              const stageJobs = jobs.filter((j) => j.stage === stage.id)
 
-                {jobs.filter((j) => j.stage === stage.id).length === 0 ? (
-                  <div className="kanban-empty">Empty</div>
-                ) : (
-                  jobs
-                    .filter((j) => j.stage === stage.id)
-                    .map((job) => (
+              return (
+                <div key={stage.id} className="kanban-col">
+                  <div className="kanban-header">{stage.label}</div>
+
+                  {stageJobs.length === 0 ? (
+                    <div className="kanban-empty">Empty</div>
+                  ) : (
+                    stageJobs.map((job) => (
                       <div key={job.id} className="kanban-card">
-                        {job.role}
+                        <div>{job.role}</div>
                         <div className="small">{job.company}</div>
                       </div>
                     ))
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              )
+            })}
           </div>
         </>
       )}
