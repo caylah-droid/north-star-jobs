@@ -70,7 +70,7 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
 
         {/* Company */}
         <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Monthly salary stated in listing? (USD)</label>
+          <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Company</label>
           <input
             type="text"
             placeholder="e.g. Notion"
