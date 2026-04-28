@@ -55,7 +55,7 @@ export default function Feed({ activeUser }: Props) {
           track: null,
         }),
       })
-      setAdded(prev => new Set([...prev, job.id]))
+      setAdded(prev => new Set(Array.from(prev).concat(job.id)))
     } catch {
       console.error('Failed to add job')
     }
