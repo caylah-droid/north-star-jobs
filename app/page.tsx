@@ -15,21 +15,18 @@ export default function Home() {
     'actions' | 'jobs' | 'companies' | 'metrics' | 'about'
   >('actions')
 
-  const tabs = [
-    { id: 'actions', label: '⚡ Today' },
-    { id: 'jobs', label: '🎯 Opportunities' },
-    { id: 'companies', label: '🏢 Companies' },
-    { id: 'metrics', label: '📊 Metrics' },
-    { id: 'about', label: '📖 Overview' },
-  ]
-
   return (
     <main>
       <Header activeUser={activeUser} setActiveUser={setActiveUser} />
 
-      {/* NAV */}
       <div className="tab-nav">
-        {tabs.map((tab) => (
+        {[
+          { id: 'actions', label: '⚡ Today' },
+          { id: 'jobs', label: '🎯 Opportunities' },
+          { id: 'companies', label: '🏢 Companies' },
+          { id: 'metrics', label: '📊 Metrics' },
+          { id: 'about', label: '📖 Overview' },
+        ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
@@ -40,26 +37,11 @@ export default function Home() {
         ))}
       </div>
 
-      {/* CONTENT */}
       <div className="content">
-        {activeTab === 'actions' && (
-          <>
-            {/* 🎯 FOCUS FIRST */}
-            <JobBoard activeUser={activeUser} limit={3} />
-
-            {/* ⚡ ACTIONS */}
-            <DailyActions activeUser={activeUser} />
-          </>
-        )}
-
+        {activeTab === 'actions' && <DailyActions activeUser={activeUser} />}
         {activeTab === 'jobs' && <JobBoard activeUser={activeUser} />}
-
-        {activeTab === 'companies' && (
-          <CompanyTargets activeUser={activeUser} />
-        )}
-
+        {activeTab === 'companies' && <CompanyTargets activeUser={activeUser} />}
         {activeTab === 'metrics' && <Metrics activeUser={activeUser} />}
-
         {activeTab === 'about' && <AboutPage />}
       </div>
     </main>
