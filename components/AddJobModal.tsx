@@ -70,7 +70,7 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
 
         {/* Company */}
         <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Company *</label>
+          <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Monthly salary stated in listing? (USD)</label>
           <input
             type="text"
             placeholder="e.g. Notion"
@@ -161,7 +161,7 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
           {form.salaryStated && (
             <input
               type="number"
-              placeholder="e.g. 120000"
+              placeholder="e.g. 9000"
               value={form.salary}
               onChange={(e) => setForm({ ...form, salary: e.target.value })}
               style={{ width: '100%', padding: '8px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14, outline: 'none' }}
