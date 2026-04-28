@@ -1,163 +1,71 @@
 'use client'
 
-import { useState } from 'react'
+type Props = { activeUser: 'caylah' | 'kyle' }
 
-type Props = { 
-  activeUser: 'caylah' | 'kyle'
-  limit?: number
+const stages = ['prospect', 'applied', 'interview', 'offer', 'rejected']
+
+const stageConfig: Record<string, { label: string; color: string }> = {
+  prospect: { label: '🔭 Prospect', color: 'slate' },
+  applied: { label: '📨 Applied', color: 'blue' },
+  interview: { label: '🎙️ Interview', color: 'yellow' },
+  offer: { label: '🎉 Offer', color: 'green' },
+  rejected: { label: '❌ Rejected', color: 'red' },
 }
 
-type Job = {
-  id: string
-  company: string
-  role: string
-  salary: number
-  stage: 'prospect' | 'applied' | 'interview' | 'offer' | 'rejected'
-  postedAt: number
-}
-
-const stages = [
-  { id: 'prospect', label: '🔭 Prospect' },
-  { id: 'applied', label: '📨 Applied' },
-  { id: 'interview', label: '🎙️ Interview' },
-  { id: 'offer', label: '🎉 Offer' },
-  { id: 'rejected', label: '❌ Rejected' },
-]
-
-export default function JobBoard({ activeUser, limit }: Props) {
-  const isKyle = activeUser === 'kyle'
-
-  // TEMP DATA (replace later)
-  const [jobs, setJobs] = useState<Job[]>([
-    {
-      id: '1',
-      company: 'Stripe',
-      role: 'Operations Manager',
-      salary: 12000,
-      stage: 'prospect',
-      postedAt: Date.now() - 1000 * 60 * 60 * 5,
-    },
-    {
-      id: '2',
-      company: 'GitLab',
-      role: 'RevOps Lead',
-      salary: 10000,
-      stage: 'prospect',
-      postedAt: Date.now() - 1000 * 60 * 60 * 24,
-    },
-  ])
-
-  // 🔥 PRIORITY LOGIC
-  const scoreJob = (job: Job) => {
-    const hoursOld = (Date.now() - job.postedAt) / (1000 * 60 * 60)
-    const freshness = hoursOld < 24 ? 1 : hoursOld < 72 ? 0.7 : 0.3
-    const salaryScore = job.salary / 15000
-    return freshness * 0.6 + salaryScore * 0.4
-  }
-
-  const sortedJobs = [...jobs].sort((a, b) => scoreJob(b) - scoreJob(a))
-  const topJobs = sortedJobs.slice(0, limit || 5)
-
-  const updateStage = (id: string, stage: Job['stage']) => {
-    setJobs((prev) =>
-      prev.map((j) => (j.id === id ? { ...j, stage } : j))
-    )
-  }
+export default function JobBoard({ activeUser }: Props) {
+  const color = activeUser === 'caylah' ? 'blue' : 'purple'
 
   return (
     <div>
-      {/* HEADER */}
-      <div className="flex-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="section-title">Opportunities</div>
-          <div className="section-sub">
-            {isKyle
-              ? 'LegalTech CSM · Marketing Ops · Account Management'
-              : 'RevOps · GTM Ops · Business Operations'}
-          </div>
+          <h2 className="text-lg font-semibold text-white">Opportunities</h2>
+          <p className="text-slate-400 text-sm mt-1">
+            {activeUser === 'caylah'
+              ? 'RevOps · GTM Ops · Business Operations'
+              : 'LegalTech CSM · Marketing Ops · Account Management'}
+          </p>
         </div>
-        <button className={`btn-add ${isKyle ? 'kyle' : ''}`}>
+        <button className={`px-4 py-2 rounded-lg text-sm font-medium ${
+          color === 'blue'
+            ? 'bg-blue-600 hover:bg-blue-500'
+            : 'bg-purple-600 hover:bg-purple-500'
+        } text-white transition-colors`}>
           + Add Job
         </button>
       </div>
 
-      {/* 🎯 TOP 5 */}
-      <div className="section-label" style={{ marginBottom: 12 }}>
-        <h3>🎯 Focus Now</h3>
-        <span className="count-badge">Top 5</span>
-      </div>
-
-      {topJobs.length === 0 ? (
-        <div className="top5-empty">
-          <p>No jobs added yet.</p>
-          <span>Add your first opportunity to see it ranked here.</span>
+      {/* Top 5 Engine */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-3">
+          <h3 className="text-sm font-semibold text-white">⭐ Highest Probability</h3>
+          <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">
+            Top 5
+          </span>
         </div>
-      ) : (
-        topJobs.map((job) => (
-          <div key={job.id} className="card">
-            <div style={{ fontWeight: 600 }}>{job.role}</div>
-            <div style={{ fontSize: 13, color: '#64748b' }}>
-              {job.company}
-            </div>
-
-            <div style={{ fontSize: 13, marginTop: 6 }}>
-              💰 ${job.salary.toLocaleString()}
-            </div>
-
-            <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
-              <button
-                className={`btn-primary ${isKyle ? 'kyle' : ''}`}
-                onClick={() => updateStage(job.id, 'applied')}
-              >
-                Apply
-              </button>
-
-              <button
-                className="btn-secondary"
-                onClick={() => updateStage(job.id, 'prospect')}
-              >
-                Save
-              </button>
-
-              <button
-                className="btn-secondary"
-                onClick={() => updateStage(job.id, 'rejected')}
-              >
-                Skip
-              </button>
-            </div>
-          </div>
-        ))
-      )}
-
-      {/* 📊 PIPELINE */}
-      <div className="section-label">
-        <h3>All Opportunities</h3>
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 text-center">
+          <p className="text-slate-500 text-sm">No jobs added yet.</p>
+          <p className="text-slate-600 text-xs mt-1">
+            Add your first opportunity to see it ranked here.
+          </p>
+        </div>
       </div>
 
-      <div className="kanban-grid">
-        {stages.map((stage) => {
-          const stageJobs = jobs.filter((j) => j.stage === stage.id)
-
-          return (
-            <div key={stage.id} className="kanban-col">
-              <div className="kanban-header">{stage.label}</div>
-
-              {stageJobs.length === 0 ? (
-                <div className="kanban-empty">Empty</div>
-              ) : (
-                stageJobs.map((job) => (
-                  <div key={job.id} className="card" style={{ padding: 10 }}>
-                    <div style={{ fontSize: 13 }}>{job.role}</div>
-                    <div style={{ fontSize: 11, color: '#64748b' }}>
-                      {job.company}
-                    </div>
-                  </div>
-                ))
-              )}
+      {/* Kanban */}
+      <div>
+        <h3 className="text-sm font-semibold text-white mb-3">All Opportunities</h3>
+        <div className="grid grid-cols-5 gap-3">
+          {stages.map((stage) => (
+            <div key={stage} className="bg-slate-900 border border-slate-800 rounded-lg p-3">
+              <div className="text-xs font-medium text-slate-400 mb-3">
+                {stageConfig[stage].label}
+              </div>
+              <div className="min-h-24 flex items-center justify-center">
+                <p className="text-slate-700 text-xs text-center">Empty</p>
+              </div>
             </div>
-          )
-        })}
+          ))}
+        </div>
       </div>
     </div>
   )
