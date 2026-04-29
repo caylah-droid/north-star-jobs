@@ -36,19 +36,35 @@ Company: ${company}
 Role: ${role}
 Job Description: ${description || 'Not provided'}
 
+const prompt = `
+You are writing a highly tailored, opinionated job application.
+
+Candidate: ${name}
+Background: ${background}
+
+Company: ${company}
+Role: ${role}
+Job Description: ${description || 'Not provided'}
+
 Write:
 
-1. Write a highly specific, opinionated job application.
-
+1. A highly specific, opinionated 3-paragraph cover letter:
 - Open with a strong point of view about the role or company
 - Avoid generic phrasing completely
 - Sound like a senior operator, not a job seeker
 - Be direct, confident, slightly bold
-- Show understanding of the company’s actual problem (not just the role)
+- Show understanding of the company’s real problem
+- Do NOT sound like a template
 
-Do NOT sound like a template.
+- Keep total length under 180–220 words
+- Avoid repeating ideas across paragraphs
+- Each paragraph must do ONE job:
+  1. Insight / point of view
+  2. Credibility / proof
+  3. Close / positioning
+- Cut anything that feels like explanation
 
-2. A short LinkedIn outreach message:
+2. A LinkedIn outreach message:
 - Max 3–4 sentences
 - Warm, direct, specific
 
