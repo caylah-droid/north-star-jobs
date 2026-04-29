@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import PitchModal from './PitchModal'
 
 type FeedJob = {
   id: string
@@ -22,6 +23,7 @@ export default function Feed({ activeUser }: Props) {
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState<string | null>(null)
   const [added, setAdded] = useState<Set<string>>(new Set())
+  const [pitchJob, setPitchJob] = useState<FeedJob | null>(null)
 
   const loadFeed = async () => {
     setLoading(true)
@@ -106,7 +108,7 @@ export default function Feed({ activeUser }: Props) {
         background: '#0f172a', border: '1px solid #1e293b',
         borderRadius: 10, padding: '10px 16px',
         display: 'flex', gap: 24, marginBottom: 20,
-        fontSize: 13,
+        fontSize: 13, flexWrap: 'wrap',
       }}>
         <span style={{ color: '#94a3b8' }}>
           <span style={{ color: 'white', fontWeight: 600 }}>{jobs.length}</span> roles found
@@ -117,7 +119,7 @@ export default function Feed({ activeUser }: Props) {
           </span> fresh (&lt;48h)
         </span>
         <span style={{ color: '#94a3b8' }}>
-          Sources: <span style={{ color: 'white' }}>Remotive · We Work Remotely</span>
+          Sources: <span style={{ color: 'white' }}>Remotive · We Work Remotely · Jobicy · Arbeitnow · Himalayas</span>
         </span>
       </div>
 
@@ -126,7 +128,7 @@ export default function Feed({ activeUser }: Props) {
         <div style={{ textAlign: 'center', padding: 60 }}>
           <div style={{ color: '#64748b', fontSize: 14 }}>Scanning job sources...</div>
           <div style={{ color: '#334155', fontSize: 12, marginTop: 8 }}>
-            Pulling from Remotive and We Work Remotely
+            Pulling from 5 sources simultaneously
           </div>
         </div>
       ) : jobs.length === 0 ? (
@@ -214,6 +216,19 @@ export default function Feed({ activeUser }: Props) {
                 >
                   {added.has(job.id) ? '✓ Added' : adding === job.id ? '...' : '+ Pipeline'}
                 </button>
+                <button
+                  onClick={() => setPitchJob(job)}
+                  style={{
+                    padding: '7px 14px',
+                    background: '#1e293b',
+                    color: '#94a3b8', border: 'none',
+                    borderRadius: 8, fontSize: 12,
+                    fontWeight: 600, cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ✨ Pitch
+                </button>
                 <a href={job.url} target="_blank" rel="noopener noreferrer">
                   <button style={{
                     width: '100%', padding: '7px 14px',
@@ -228,6 +243,18 @@ export default function Feed({ activeUser }: Props) {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Pitch Modal */}
+      {pitchJob && (
+        <PitchModal
+          activeUser={activeUser}
+          company={pitchJob.company}
+          role={pitchJob.role}
+          description={pitchJob.description}
+          platform={pitchJob.platform}
+          onClose={() => setPitchJob(null)}
+        />
       )}
     </div>
   )
