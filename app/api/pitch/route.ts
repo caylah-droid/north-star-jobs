@@ -19,43 +19,54 @@ Skills: Relationship building, legal client fluency, team leadership, client ret
 
 export async function POST(request: Request) {
   const body = await request.json()
-  const { user, company, role, description, platform } = body
+  const { user, company, role, description } = body
 
   const background = user === 'caylah' ? CAYLAH_BACKGROUND : KYLE_BACKGROUND
   const name = user === 'caylah' ? 'Caylah' : 'Kyle'
 
-  const prompt = `Write a job application pitch for ${name} applying to ${role} at ${company}.
-
-${name}'s background: ${background}
-
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a career coach helping ${name} write job applications. 
+Background: ${background}
+Always return valid JSON only with fields "coverLetter" and "linkedinOutreach".`,
+          },
+          {
+            role: 'user',
+            content: `Write a pitch for ${name} applying to ${role} at ${company}.
 Job description: ${description || 'Not provided'}
 
-Return a JSON object with exactly these two fields:
+Return JSON only:
 {
-  "coverLetter": "3 paragraph cover letter here",
-  "linkedinOutreach": "short linkedin message here"
-}
-
-Return only the JSON object, nothing else.`
-
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1000,
+  "coverLetter": "3 short paragraphs, specific to this company and role",
+  "linkedinOutreach": "max 4 sentences, warm and specific"
+}`,
           },
-        }),
-      }
-    )
+        ],
+        temperature: 0.7,
+        max_tokens: 1000,
+      }),
+    })
 
     const data = await res.json()
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+
+    if (data.error) {
+      return NextResponse.json(
+        { error: data.error.message },
+        { status: 500 }
+      )
+    }
+
+    const text = data.choices?.[0]?.message?.content || ''
 
     const cleaned = text
       .replace(/```json/g, '')
