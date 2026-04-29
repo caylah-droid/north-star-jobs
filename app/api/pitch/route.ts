@@ -51,27 +51,27 @@ STYLE:
 - Slightly opinionated is GOOD
 - Sound like a strategic hire, not a safe hire
 
-OUTPUT FORMAT (STRICT JSON ONLY):
+Return JSON in this format:
 {
   "coverLetter": "3 paragraphs, 160–220 words total. Tight, direct, differentiated. Strong opening and decisive closing.",
   "linkedinOutreach": "Max 3 sentences. Natural, confident, not salesy. Reference the company/role."
 }
 `
 
-const res = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
-  {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 600,
-      },
-    }),
-  }
-)
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 600,
+          },
+        }),
+      }
+    )
 
     const data = await res.json()
 
@@ -91,20 +91,26 @@ const res = await fetch(
       .replace(/```/g, '')
       .trim()
 
+    let coverLetter = ''
+    let linkedinOutreach = ''
+
     try {
       const parsed = JSON.parse(cleaned)
-
-      return NextResponse.json({
-        coverLetter: parsed.coverLetter || '',
-        linkedinOutreach: parsed.linkedinOutreach || '',
-      })
+      coverLetter = parsed.coverLetter || ''
+      linkedinOutreach = parsed.linkedinOutreach || ''
     } catch {
-      // fallback if JSON fails
-      return NextResponse.json({
-        coverLetter: cleaned,
-        linkedinOutreach: '',
-      })
+      // Fallback extraction if JSON breaks
+      const coverMatch = cleaned.match(/"coverLetter"\s*:\s*"([^"]+)/)
+      const linkedinMatch = cleaned.match(/"linkedinOutreach"\s*:\s*"([^"]+)/)
+
+      coverLetter = coverMatch ? coverMatch[1] : cleaned
+      linkedinOutreach = linkedinMatch ? linkedinMatch[1] : ''
     }
+
+    return NextResponse.json({
+      coverLetter,
+      linkedinOutreach,
+    })
   } catch (error) {
     return NextResponse.json(
       { error: String(error) },
