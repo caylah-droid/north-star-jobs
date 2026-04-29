@@ -38,11 +38,15 @@ Job Description: ${description || 'Not provided'}
 
 Write:
 
-1. A strong, tailored 3-paragraph cover letter:
-- Specific to the company and role
-- Confident, direct, not generic
-- Focus on operations, systems, and impact
-- No fluff
+1. Write a highly specific, opinionated job application.
+
+- Open with a strong point of view about the role or company
+- Avoid generic phrasing completely
+- Sound like a senior operator, not a job seeker
+- Be direct, confident, slightly bold
+- Show understanding of the company’s actual problem (not just the role)
+
+Do NOT sound like a template.
 
 2. A short LinkedIn outreach message:
 - Max 3–4 sentences
