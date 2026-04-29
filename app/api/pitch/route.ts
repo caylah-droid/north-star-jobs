@@ -43,7 +43,7 @@ Write:
 - Avoid generic phrasing completely
 - Sound like a senior operator, not a job seeker
 - Be direct, confident, slightly bold
-- Show understanding of the company’s real problem
+- Show understanding of the company's real problem
 - Do NOT sound like a template
 
 - Keep total length under 180–220 words
@@ -114,6 +114,15 @@ LINKEDIN:
     } else {
       // fallback if format ignored
       coverLetter = text
+    }
+
+    // ✅ ADDITIONAL SAFETY CHECK
+    if (!coverLetter && !linkedinOutreach) {
+      return NextResponse.json({
+        coverLetter: text,
+        linkedinOutreach: 'Failed to parse response. Raw output available in cover letter.',
+        error: 'Parsing failed - unexpected format',
+      })
     }
 
     return NextResponse.json({
