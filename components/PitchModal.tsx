@@ -71,7 +71,7 @@ export default function PitchModal({ activeUser, company, role, description, pla
       <div style={{
         background: '#0f172a', border: '1px solid #1e293b',
         borderRadius: 16, padding: 24, width: '100%', maxWidth: 560,
-        maxHeight: 'none', overflowY: 'visible',
+        maxHeight: '90vh', overflowY: 'auto',
       }}>
 
         {/* Header */}
