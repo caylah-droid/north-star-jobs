@@ -1,64 +1,20 @@
 import { NextResponse } from 'next/server'
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`
-
-// ─── CLEAN BACKGROUNDS (NO EQUITY LANGUAGE) ─────────────────
-
 const CAYLAH_BACKGROUND = `
 7+ years operational leadership across South Africa, USA, and UK.
-Led full Zoho One CRM implementation and multi-country operations scaling.
-Directed platform migration from SharePoint and Power BI to custom .NET systems.
-Experience supporting 150+ staff, 180 law firms, and high-volume operational environments.
-Focus: systems, automation, and operational execution.
-Skills: Systems thinking, CRM architecture, workflow automation, process design.
+Led full Zoho One CRM implementations and operational systems.
+Built scalable workflows, automation pipelines, and reporting systems.
+Experience across legal, medical, and high-volume operational environments.
+Skills: systems thinking, operations strategy, automation, CRM architecture, process design.
 `
 
 const KYLE_BACKGROUND = `
 Extensive relationship management across legal and marketing environments.
-Deep experience working with law firms and attorneys.
-Strong team management and customer relationship management.
+Strong experience working with law firms and attorneys.
+Team leadership and client relationship management.
 Business development across legal services and marketing companies.
-Skills: Relationship building, legal client fluency, team leadership, client retention.
+Skills: relationship building, client management, team leadership.
 `
-
-// ─── GEMINI CALL ────────────────────────────────────────────
-
-async function callGemini(prompt: string) {
-  const res = await fetch(GEMINI_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.5,
-        maxOutputTokens: 900,
-      },
-    }),
-  })
-
-  const data = await res.json()
-
-  if (data.error) throw new Error(data.error.message)
-
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-}
-
-// ─── SAFE JSON PARSER ───────────────────────────────────────
-
-function safeJSONParse(text: string) {
-  try {
-    const cleaned = text
-      .replace(/```json/g, '')
-      .replace(/```/g, '')
-      .trim()
-
-    return JSON.parse(cleaned)
-  } catch {
-    return null
-  }
-}
-
-// ─── MAIN ROUTE ─────────────────────────────────────────────
 
 export async function POST(request: Request) {
   try {
@@ -67,110 +23,89 @@ export async function POST(request: Request) {
 
     const background =
       user === 'caylah' ? CAYLAH_BACKGROUND : KYLE_BACKGROUND
+
     const name = user === 'caylah' ? 'Caylah' : 'Kyle'
 
-    // ─── STEP 1: EXTRACT JOB ────────────────────────────────
+    const prompt = `
+You are writing a highly tailored job application.
 
-    const extractPrompt = `
-Extract structured information from this job description.
+Candidate: ${name}
+Background: ${background}
 
-Return JSON:
-{
-  "required_skills": [],
-  "seniority": "",
-  "focus_areas": [],
-  "company_stage": ""
-}
+Company: ${company}
+Role: ${role}
+Job Description: ${description || 'Not provided'}
 
-Job description:
-${description || 'Not provided'}
+Write:
+
+1. Write a highly specific, opinionated job application.
+- Open with a strong point of view about the role or company
+- Avoid generic phrasing completely
+- Sound like a senior operator, not a job seeker
+- Be direct, confident, slightly bold
+- Show understanding of the company’s actual problem (not just the role)
+
+Do NOT sound like a template.
+
+2. A short LinkedIn outreach message:
+- Max 3–4 sentences
+- Warm, direct, specific
+
+Format EXACTLY like this:
+
+COVER LETTER:
+<text>
+
+LINKEDIN:
+<text>
 `
 
-    const extractText = await callGemini(extractPrompt)
-
-    const jobData =
-      safeJSONParse(extractText) || {
-        required_skills: [],
-        seniority: '',
-        focus_areas: [],
-        company_stage: 'scaling',
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1000,
+          },
+        }),
       }
+    )
 
-    // ─── STEP 2: MATCH ANALYSIS ─────────────────────────────
+    const data = await res.json()
 
-    const matchPrompt = `
-Given this candidate and job, return:
+    if (data.error) {
+      return NextResponse.json(
+        { error: data.error.message },
+        { status: 500 }
+      )
+    }
 
-{
-  "matchScore": number,
-  "topStrengths": [],
-  "gaps": [],
-  "positioning": ""
-}
+    // ✅ SAFE TEXT EXTRACTION
+    const parts = data.candidates?.[0]?.content?.parts || []
+    const text = parts.map((p: any) => p.text || '').join('').trim()
 
-Candidate:
-${background}
+    // ✅ SAFE PARSING (NO JSON DEPENDENCY)
+    let coverLetter = ''
+    let linkedinOutreach = ''
 
-Job:
-${JSON.stringify(jobData)}
-`
+    if (text.includes('COVER LETTER:')) {
+      const split1 = text.split('COVER LETTER:')[1]
+      const split2 = split1.split('LINKEDIN:')
 
-    const matchText = await callGemini(matchPrompt)
-
-    const match =
-      safeJSONParse(matchText) || {
-        matchScore: 80,
-        topStrengths: [],
-        gaps: [],
-        positioning: 'operations and systems scaling',
-      }
-
-    // ─── STEP 3: GENERATE COVER LETTER ──────────────────────
-
-    const finalPrompt = `
-Write a job application pitch for ${name} applying to ${role} at ${company}.
-
-Candidate background:
-${background}
-
-Job insights:
-- Required skills: ${jobData.required_skills.join(', ')}
-- Seniority: ${jobData.seniority}
-- Focus areas: ${jobData.focus_areas.join(', ')}
-- Company stage: ${jobData.company_stage}
-
-Match analysis:
-- Match score: ${match.matchScore}%
-- Top strengths: ${match.topStrengths.join(', ')}
-- Gaps: ${match.gaps.join(', ')}
-- Positioning: ${match.positioning}
-
-Instructions:
-- Write like an experienced operator, not a job seeker
-- Identify what problem the company likely has at this stage
-- Position the candidate as the solution to operational complexity
-- Focus on systems, execution, scaling, and structure
-- Use concrete impact (scale, automation, reporting)
-- Avoid generic phrases ("I am excited", "I am passionate")
-- Keep tone direct, sharp, and confident
-
-Return JSON:
-{
-  "coverLetter": "3 strong paragraphs",
-  "linkedinOutreach": "max 4 sentences, warm but sharp"
-}
-`
-
-    const finalText = await callGemini(finalPrompt)
-
-    const parsed = safeJSONParse(finalText)
+      coverLetter = split2[0]?.trim() || ''
+      linkedinOutreach = split2[1]?.trim() || ''
+    } else {
+      // fallback if model ignores format
+      coverLetter = text
+    }
 
     return NextResponse.json({
-      coverLetter: parsed?.coverLetter || '',
-      linkedinOutreach: parsed?.linkedinOutreach || '',
-      matchScore: match.matchScore,
-      strengths: match.topStrengths,
-      gaps: match.gaps,
+      coverLetter,
+      linkedinOutreach,
     })
   } catch (error) {
     return NextResponse.json(
