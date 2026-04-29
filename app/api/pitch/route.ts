@@ -145,10 +145,13 @@ Match analysis:
 - Positioning: ${match.positioning}
 
 Instructions:
-- Be highly specific to the company and role
-- Lead with strongest alignment
-- Smoothly handle gaps without highlighting weakness
-- Keep tone confident, sharp, and natural
+- Identify what stage the company is likely in (growth, scaling, stabilizing)
+- Position the candidate as the solution to operational complexity at that stage
+- Focus on systems, execution, and building structure
+- Use concrete impact (scale, automation, reporting, efficiency)
+- Avoid generic phrases like "I am excited" or "I am passionate"
+- Tone: confident, direct, operator-level thinking
+- Write in the style of an experienced operator, not a job seeker.
 
 Return JSON:
 {
