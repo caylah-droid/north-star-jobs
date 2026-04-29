@@ -2,18 +2,17 @@ import { NextResponse } from 'next/server'
 
 const CAYLAH_BACKGROUND = `
 7+ years operational leadership across South Africa, USA, and UK.
-Led full Zoho One CRM implementations and operational systems.
-Built scalable workflows, automation pipelines, and reporting systems.
-Experience across legal, medical, and high-volume operational environments.
-Skills: systems thinking, operations strategy, automation, CRM architecture, process design.
+Led full Zoho One CRM implementations and built scalable operational systems.
+Specialist in systems thinking, workflow automation, and process architecture.
+Experience across legal and medical sectors handling high-volume, regulated environments.
+Strength: turning fragmented manual processes into structured, automated systems.
 `
 
 const KYLE_BACKGROUND = `
 Extensive relationship management across legal and marketing environments.
 Strong experience working with law firms and attorneys.
-Team leadership and client relationship management.
-Business development across legal services and marketing companies.
-Skills: relationship building, client management, team leadership.
+Skilled in team leadership, client communication, and retention.
+Background in business development and client-facing operations.
 `
 
 export async function POST(request: Request) {
@@ -21,68 +20,54 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { user, company, role, description } = body
 
-    const background =
-      user === 'caylah' ? CAYLAH_BACKGROUND : KYLE_BACKGROUND
-
+    const background = user === 'caylah' ? CAYLAH_BACKGROUND : KYLE_BACKGROUND
     const name = user === 'caylah' ? 'Caylah' : 'Kyle'
 
     const prompt = `
-You are writing a highly tailored, opinionated job application.
+You are writing a high-impact job application for a top 1% candidate.
 
 Candidate: ${name}
-Background: ${background}
+Background:
+${background}
 
 Company: ${company}
 Role: ${role}
-Job Description: ${description || 'Not provided'}
+Job Description:
+${description || 'Not provided'}
 
-Write:
+OBJECTIVE:
+Write like a senior operator, not a job seeker.
 
-1. A highly specific, opinionated 3-paragraph cover letter:
-- Open with a strong point of view about the role or company
-- Avoid generic phrasing completely
-- Sound like a senior operator, not a job seeker
-- Be direct, confident, slightly bold
-- Show understanding of the company’s real problem
-- Do NOT sound like a template
+RULES:
+- No fluff, no buzzwords, no generic phrasing
+- No “I am excited”, “I believe”, or corporate filler
+- Be direct, confident, and specific
+- Focus on systems, scale, and business impact
+- Make the candidate sound like someone who solves structural problems, not executes tasks
+- Tailor clearly to the company and role
 
-- Keep total length under 180–220 words
-- Avoid repeating ideas across paragraphs
-- Each paragraph must do ONE job:
-  1. Insight / point of view
-  2. Credibility / proof
-  3. Close / positioning
-- Cut anything that feels like explanation
+STYLE:
+- Sharp, concise, high-signal writing
+- Slightly opinionated is GOOD
+- Sound like a strategic hire, not a safe hire
 
-2. A LinkedIn outreach message:
-- Max 3–4 sentences
-- Warm, direct, specific
-
-Format EXACTLY like this:
-
-COVER LETTER:
-<text>
-
-LINKEDIN:
-<text>
+OUTPUT FORMAT (STRICT JSON ONLY):
+{
+  "coverLetter": "3 paragraphs, 160–220 words total. Tight, direct, differentiated. Strong opening and decisive closing.",
+  "linkedinOutreach": "Max 3 sentences. Natural, confident, not salesy. Reference the company/role."
+}
 `
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
+          contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 1000,
+            maxOutputTokens: 600,
           },
         }),
       }
@@ -97,29 +82,29 @@ LINKEDIN:
       )
     }
 
-    // ✅ SAFE TEXT EXTRACTION
-    const parts = data.candidates?.[0]?.content?.parts || []
-    const text = parts.map((p: any) => p.text || '').join('').trim()
+    const text =
+      data.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
-    // ✅ SAFE SPLIT PARSING
-    let coverLetter = ''
-    let linkedinOutreach = ''
+    // Clean Gemini formatting
+    const cleaned = text
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim()
 
-    if (text.includes('COVER LETTER:')) {
-      const afterCover = text.split('COVER LETTER:')[1] || ''
-      const split = afterCover.split('LINKEDIN:')
+    try {
+      const parsed = JSON.parse(cleaned)
 
-      coverLetter = split[0]?.trim() || ''
-      linkedinOutreach = split[1]?.trim() || ''
-    } else {
-      // fallback if format ignored
-      coverLetter = text
+      return NextResponse.json({
+        coverLetter: parsed.coverLetter || '',
+        linkedinOutreach: parsed.linkedinOutreach || '',
+      })
+    } catch {
+      // fallback if JSON fails
+      return NextResponse.json({
+        coverLetter: cleaned,
+        linkedinOutreach: '',
+      })
     }
-
-    return NextResponse.json({
-      coverLetter,
-      linkedinOutreach,
-    })
   } catch (error) {
     return NextResponse.json(
       { error: String(error) },
