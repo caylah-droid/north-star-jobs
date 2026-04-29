@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-const ZAR_RATE = 18.5
-
 function scoreJob(job: any, user: string): number {
   let score = 0
 
-  // Stage — highest weight
   const stageScores: Record<string, number> = {
     offer: 80,
     interview: 50,
@@ -16,7 +13,6 @@ function scoreJob(job: any, user: string): number {
   }
   score += stageScores[job.stage] || 0
 
-  // Freshness
   if (job.postedAt) {
     const hoursOld = (Date.now() - new Date(job.postedAt).getTime()) / (1000 * 60 * 60)
     if (hoursOld <= 24) score += 40
@@ -24,11 +20,9 @@ function scoreJob(job: any, user: string): number {
     else if (hoursOld <= 72) score += 15
   }
 
-  // High value threshold per user (monthly USD)
   const threshold = user === 'caylah' ? 5400 : 2700
   if (job.salaryMin && job.salaryMin >= threshold) score += 30
 
-  // Platform quality
   const platformScores: Record<string, number> = {
     'Company Website': 20,
     'We Work Remotely': 15,
@@ -47,7 +41,6 @@ export async function GET(request: Request) {
   const user = searchParams.get('user') || 'caylah'
 
   const jobs = await prisma.job.findMany({ where: { user } })
-
   const threshold = user === 'caylah' ? 5400 : 2700
 
   const scored = await Promise.all(
