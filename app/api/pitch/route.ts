@@ -17,6 +17,31 @@ Business development across legal services and marketing companies.
 Skills: Relationship building, legal client fluency, team leadership, client retention.
 `
 
+const MODELS = [
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
+  'gemini-1.5-flash',
+  'gemini-1.5-flash-latest',
+  'gemini-pro',
+]
+
+async function tryGemini(model: string, prompt: string, apiKey: string) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 1000 },
+      }),
+    }
+  )
+  const data = await res.json()
+  if (data.error) return null
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || null
+}
+
 export async function POST(request: Request) {
   const body = await request.json()
   const { user, company, role, description } = body
@@ -24,71 +49,53 @@ export async function POST(request: Request) {
   const background = user === 'caylah' ? CAYLAH_BACKGROUND : KYLE_BACKGROUND
   const name = user === 'caylah' ? 'Caylah' : 'Kyle'
 
-  try {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a career coach helping ${name} write job applications. 
+  const prompt = `Write a job application pitch for ${name} applying to ${role} at ${company}.
+
 Background: ${background}
-Always return valid JSON only with fields "coverLetter" and "linkedinOutreach".`,
-          },
-          {
-            role: 'user',
-            content: `Write a pitch for ${name} applying to ${role} at ${company}.
 Job description: ${description || 'Not provided'}
 
-Return JSON only:
+Return JSON only with these two fields:
 {
-  "coverLetter": "3 short paragraphs, specific to this company and role",
+  "coverLetter": "3 short paragraphs tailored to this role",
   "linkedinOutreach": "max 4 sentences, warm and specific"
-}`,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 1000,
-      }),
-    })
+}`
 
-    const data = await res.json()
+  const apiKey = process.env.GEMINI_API_KEY || ''
+  let text = null
+  let usedModel = ''
 
-    if (data.error) {
-      return NextResponse.json(
-        { error: data.error.message },
-        { status: 500 }
-      )
+  for (const model of MODELS) {
+    text = await tryGemini(model, prompt, apiKey)
+    if (text) {
+      usedModel = model
+      break
     }
+  }
 
-    const text = data.choices?.[0]?.message?.content || ''
-
-    const cleaned = text
-      .replace(/```json/g, '')
-      .replace(/```/g, '')
-      .trim()
-
-    try {
-      const parsed = JSON.parse(cleaned)
-      return NextResponse.json({
-        coverLetter: parsed.coverLetter || '',
-        linkedinOutreach: parsed.linkedinOutreach || '',
-      })
-    } catch {
-      return NextResponse.json({
-        coverLetter: cleaned,
-        linkedinOutreach: '',
-      })
-    }
-  } catch (error) {
+  if (!text) {
     return NextResponse.json(
-      { error: String(error) },
+      { error: 'No Gemini model available. Please check your API key.' },
       { status: 500 }
     )
+  }
+
+  const cleaned = text
+    .replace(/```json/g, '')
+    .replace(/```/g, '')
+    .trim()
+
+  try {
+    const parsed = JSON.parse(cleaned)
+    return NextResponse.json({
+      coverLetter: parsed.coverLetter || '',
+      linkedinOutreach: parsed.linkedinOutreach || '',
+      model: usedModel,
+    })
+  } catch {
+    return NextResponse.json({
+      coverLetter: cleaned,
+      linkedinOutreach: '',
+      model: usedModel,
+    })
   }
 }
