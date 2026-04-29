@@ -87,13 +87,24 @@ LINKEDIN OUTREACH:
     const data = await res.json()
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
-    const coverLetterMatch = text.match(/COVER LETTER:\n([\s\S]*?)(?=LINKEDIN OUTREACH:|$)/)
-    const linkedinMatch = text.match(/LINKEDIN OUTREACH:\n([\s\S]*)/)
+    // Flexible parsing — handles variations in Gemini's formatting
+let coverLetter = ''
+let linkedinOutreach = ''
 
-    return NextResponse.json({
-      coverLetter: coverLetterMatch?.[1]?.trim() || '',
-      linkedinOutreach: linkedinMatch?.[1]?.trim() || '',
-    })
+const coverMatch = text.match(/COVER LETTER:?\s*\n([\s\S]*?)(?=LINKEDIN OUTREACH:|$)/i)
+const linkedinMatch = text.match(/LINKEDIN OUTREACH:?\s*\n([\s\S]*)/i)
+
+if (coverMatch) coverLetter = coverMatch[1].trim()
+if (linkedinMatch) linkedinOutreach = linkedinMatch[1].trim()
+
+// Fallback — if formatting completely different, split by sections
+if (!coverLetter && !linkedinOutreach && text.length > 100) {
+  const parts = text.split(/\n\n+/)
+  coverLetter = parts.slice(0, 3).join('\n\n').trim()
+  linkedinOutreach = parts.slice(3).join('\n\n').trim()
+}
+
+return NextResponse.json({ coverLetter, linkedinOutreach })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to generate pitch' }, { status: 500 })
   }
