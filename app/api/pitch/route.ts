@@ -27,16 +27,6 @@ export async function POST(request: Request) {
     const name = user === 'caylah' ? 'Caylah' : 'Kyle'
 
     const prompt = `
-You are writing a highly tailored job application.
-
-Candidate: ${name}
-Background: ${background}
-
-Company: ${company}
-Role: ${role}
-Job Description: ${description || 'Not provided'}
-
-const prompt = `
 You are writing a highly tailored, opinionated job application.
 
 Candidate: ${name}
@@ -81,9 +71,15 @@ LINKEDIN:
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
+          contents: [
+            {
+              parts: [{ text: prompt }],
+            },
+          ],
           generationConfig: {
             temperature: 0.7,
             maxOutputTokens: 1000,
@@ -105,18 +101,18 @@ LINKEDIN:
     const parts = data.candidates?.[0]?.content?.parts || []
     const text = parts.map((p: any) => p.text || '').join('').trim()
 
-    // ✅ SAFE PARSING (NO JSON DEPENDENCY)
+    // ✅ SAFE SPLIT PARSING
     let coverLetter = ''
     let linkedinOutreach = ''
 
     if (text.includes('COVER LETTER:')) {
-      const split1 = text.split('COVER LETTER:')[1]
-      const split2 = split1.split('LINKEDIN:')
+      const afterCover = text.split('COVER LETTER:')[1] || ''
+      const split = afterCover.split('LINKEDIN:')
 
-      coverLetter = split2[0]?.trim() || ''
-      linkedinOutreach = split2[1]?.trim() || ''
+      coverLetter = split[0]?.trim() || ''
+      linkedinOutreach = split[1]?.trim() || ''
     } else {
-      // fallback if model ignores format
+      // fallback if format ignored
       coverLetter = text
     }
 
