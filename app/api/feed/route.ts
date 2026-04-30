@@ -9,6 +9,7 @@ const CAYLAH_KEYWORDS = [
   'operations',
   'operations manager',
   'business operations',
+   'analytics',
 
   // Systems / Tools
   'systems',
