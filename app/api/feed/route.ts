@@ -11,7 +11,7 @@ const CAYLAH_KEYWORDS = [
 
   // Systems / execution
   'systems', 'business systems', 'process improvement',
-  'process optimisation', 'workflow', 'automation', 'crm', 'execution, 
+  'process optimisation', 'workflow', 'automation', 'crm', 'execution', 
 
   // Strategy / growth
   'revops', 'revenue operations', 'gtm operations',
