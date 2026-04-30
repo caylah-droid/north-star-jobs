@@ -11,16 +11,16 @@ const CAYLAH_KEYWORDS = [
 
   // Systems / execution
   'systems', 'business systems', 'process improvement',
-  'process optimisation', 'workflow', 'automation', 'crm',
+  'process optimisation', 'workflow', 'automation', 'crm', 'execution, 
 
   // Strategy / growth
   'revops', 'revenue operations', 'gtm operations',
-  'sales operations', 'growth operations',
+  'sales operations', 'growth operations', 'implementation',
 
   // Broader roles (to increase volume)
   'project manager', 'program manager',
   'business analyst', 'analytics', 'data',
-  'chief of staff', 'executive assistant'
+  'chief of staff', 'executive assistant', 'coordinator', 'partnership'
 ]
 
 const KYLE_KEYWORDS = [
