@@ -1,25 +1,62 @@
 import { NextResponse } from 'next/server'
 
 /* =============================
-   KEYWORDS (UNCHANGED CORE)
+   KEYWORDS (YOUR REAL TARGET)
 ============================= */
 
 const CAYLAH_KEYWORDS = [
-  'revenue operations', 'revops', 'gtm operations', 'sales operations',
-  'business operations', 'process operations', 'systems operations',
-  'operations manager', 'operations lead', 'business systems',
-  'workflow automation', 'crm operations', 'growth operations',
+  // Core Ops
+  'operations',
+  'operations manager',
+  'business operations',
+
+  // Systems / Tools
+  'systems',
+  'business systems',
+  'systems analyst',
+  'crm',
+  'hubspot',
+  'salesforce',
+
+  // Automation / Efficiency
+  'automation',
+  'workflow',
+  'process improvement',
+
+  // Execution roles
+  'implementation',
+  'onboarding',
+  'project manager',
+  'program manager',
+  'operations analyst',
+  'business analyst',
+
+  // Exec support (high ROI)
+  'executive assistant',
+  'operations coordinator',
+  'executive operations',
+
+  // Light RevOps (not dominant)
+  'revops',
+  'revenue operations',
+  'gtm operations',
 ]
 
 const KYLE_KEYWORDS = [
-  'customer success', 'client success', 'account manager',
-  'account executive', 'client relations', 'customer experience',
-  'legal operations', 'legaltech', 'legal tech',
-  'onboarding', 'implementation', 'relationship manager',
+  'customer success',
+  'account manager',
+  'client success',
+  'customer experience',
+  'onboarding',
+  'implementation',
+  'relationship manager',
+  'client partner',
+  'legaltech',
+  'legal operations',
 ]
 
 /* =============================
-   MATCHING (SAFE UPGRADE)
+   MATCHING (KEEP VOLUME)
 ============================= */
 
 function matchesUser(title: string, description: string, user: string): boolean {
@@ -31,11 +68,11 @@ function matchesUser(title: string, description: string, user: string): boolean 
     if (text.includes(keyword.toLowerCase())) score++
   }
 
-  return score >= 1 // SAFE (not too strict yet)
+  return score >= 1 // IMPORTANT
 }
 
 /* =============================
-   EXISTING FETCHERS (UNCHANGED)
+   FETCHERS (SAFE + STABLE)
 ============================= */
 
 async function fetchRemotive(user: string) {
@@ -141,7 +178,7 @@ async function fetchHimalayas(user: string) {
 }
 
 /* =============================
-   NEW FEEDS (SAFE VERSION)
+   NEW FEEDS (SAFE RSS)
 ============================= */
 
 async function fetchRevOpsCareers(user: string) {
@@ -224,6 +261,7 @@ export async function GET(request: Request) {
     ...nodesk,
   ]
 
+  // Deduplicate
   const seen = new Set()
   const unique = combined.filter(job => {
     const key = `${job.company}-${job.role}`.toLowerCase()
@@ -232,6 +270,7 @@ export async function GET(request: Request) {
     return true
   })
 
+  // Sort newest first
   unique.sort((a, b) => {
     const dateA = a.postedAt ? new Date(a.postedAt).getTime() : 0
     const dateB = b.postedAt ? new Date(b.postedAt).getTime() : 0
