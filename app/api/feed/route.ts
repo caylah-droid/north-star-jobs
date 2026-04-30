@@ -1,46 +1,34 @@
 import { NextResponse } from 'next/server'
 
 /* =============================
-   KEYWORDS (YOUR REAL TARGET)
+   KEYWORDS
 ============================= */
 
 const CAYLAH_KEYWORDS = [
-  // Core Ops
   'operations',
   'operations manager',
   'business operations',
-   'analytics',
 
-  // Systems / Tools
   'systems',
   'business systems',
-  'systems analyst',
   'crm',
-  'hubspot',
-  'salesforce',
 
-  // Automation / Efficiency
   'automation',
   'workflow',
   'process improvement',
 
-  // Execution roles
-  'implementation',
-  'onboarding',
   'project manager',
   'program manager',
-  'operations analyst',
-  'business analyst',
+  'implementation',
 
-  // Exec support (high ROI)
   'executive assistant',
   'operations coordinator',
-  'executive operations',
 
-  // Light RevOps (not dominant)
   'revops',
   'revenue operations',
   'gtm operations',
+
+  'analytics', // important addition
 ]
 
 const KYLE_KEYWORDS = [
@@ -57,7 +45,7 @@ const KYLE_KEYWORDS = [
 ]
 
 /* =============================
-   MATCHING (KEEP VOLUME)
+   MATCHING
 ============================= */
 
 function matchesUser(title: string, description: string, user: string): boolean {
@@ -69,11 +57,11 @@ function matchesUser(title: string, description: string, user: string): boolean 
     if (text.includes(keyword.toLowerCase())) score++
   }
 
-  return score >= 1 // IMPORTANT
+  return score >= 1
 }
 
 /* =============================
-   FETCHERS (SAFE + STABLE)
+   FETCHERS
 ============================= */
 
 async function fetchRemotive(user: string) {
@@ -94,7 +82,9 @@ async function fetchRemotive(user: string) {
         salary: job.salary || null,
         postedAt: job.publication_date,
       }))
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 async function fetchWeworkremotely(user: string) {
@@ -108,26 +98,29 @@ async function fetchWeworkremotely(user: string) {
 
     const items = text.split('<item>').slice(1)
 
-    return items.map(item => {
-      const title = item.split('<title><![CDATA[')[1]?.split(']]></title>')[0] || ''
-      const link = item.split('<link>')[1]?.split('</link>')[0] || ''
-      const pubDate = item.split('<pubDate>')[1]?.split('</pubDate>')[0] || ''
+    return items
+      .map(item => {
+        const title = item.split('<title><![CDATA[')[1]?.split(']]></title>')[0] || ''
+        const link = item.split('<link>')[1]?.split('</link>')[0] || ''
+        const pubDate = item.split('<pubDate>')[1]?.split('</pubDate>')[0] || ''
 
-      const company = title.split(' at ')[1] || ''
-      const role = title.split(' at ')[0] || title
+        const company = title.split(' at ')[1] || ''
+        const role = title.split(' at ')[0] || title
 
-      return {
-        id: `wwr-${link}`,
-        company,
-        role,
-        platform: 'We Work Remotely',
-        url: link,
-        salary: null,
-        postedAt: pubDate,
-      }
-    }).filter(job => matchesUser(job.role, '', user))
-
-  } catch { return [] }
+        return {
+          id: `wwr-${link}`,
+          company,
+          role,
+          platform: 'We Work Remotely',
+          url: link,
+          salary: null,
+          postedAt: pubDate,
+        }
+      })
+      .filter(job => matchesUser(job.role, '', user))
+  } catch {
+    return []
+  }
 }
 
 async function fetchJobicy(user: string) {
@@ -151,35 +144,63 @@ async function fetchJobicy(user: string) {
         salary: null,
         postedAt: job.pubDate,
       }))
-  } catch { return [] }
-}
-
-async function fetchHimalayas(user: string) {
-  try {
-    const keyword = user === 'caylah' ? 'operations' : 'customer-success'
-
-    const res = await fetch(`https://himalayas.app/jobs/api?q=${keyword}&limit=50`, {
-      next: { revalidate: 3600 }
-    })
-
-    const data = await res.json()
-
-    return (data.jobs || [])
-      .filter((job: any) => matchesUser(job.title, job.description || '', user))
-      .map((job: any) => ({
-        id: `himalayas-${job.slug}`,
-        company: job.company?.name || 'Unknown',
-        role: job.title,
-        platform: 'Himalayas',
-        url: `https://himalayas.app/jobs/${job.slug}`,
-        salary: job.salary || null,
-        postedAt: job.createdAt,
-      }))
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 /* =============================
-   NEW FEEDS (SAFE RSS)
+   FIXED HIMALAYAS (MULTI-QUERY)
+============================= */
+
+async function fetchHimalayas(user: string) {
+  try {
+    const keywords = user === 'caylah'
+      ? ['operations', 'analytics', 'systems', 'business']
+      : ['customer-success']
+
+    const results = await Promise.all(
+      keywords.map((k) =>
+        fetch(`https://himalayas.app/jobs/api?q=${encodeURIComponent(k)}&limit=50`, {
+          next: { revalidate: 3600 }
+        })
+          .then((res) => res.json())
+          .catch(() => ({ jobs: [] }))
+      )
+    )
+
+    const allJobs = results.flatMap((r) => r.jobs || [])
+
+    const seen = new Set()
+
+    return allJobs
+      .filter((job: any) => {
+        const key = `${job.company?.name}-${job.title}`.toLowerCase()
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      .filter((job: any) =>
+        matchesUser(job.title, job.description || '', user)
+      )
+      .map((job: any) => ({
+        id: `himalayas-${job.id || job.slug}`,
+        company: job.company?.name || 'Unknown',
+        role: job.title,
+        platform: 'Himalayas',
+        url: job.url
+          ? job.url
+          : `https://himalayas.app/jobs?q=${encodeURIComponent(job.title)}`,
+        salary: job.salary || null,
+        postedAt: job.createdAt || null,
+      }))
+  } catch {
+    return []
+  }
+}
+
+/* =============================
+   RSS FEEDS
 ============================= */
 
 async function fetchRevOpsCareers(user: string) {
@@ -191,22 +212,25 @@ async function fetchRevOpsCareers(user: string) {
     const text = await res.text()
     const items = text.split('<item>').slice(1)
 
-    return items.map(item => {
-      const title = item.split('<title>')[1]?.split('</title>')[0] || ''
-      const link = item.split('<link>')[1]?.split('</link>')[0] || ''
+    return items
+      .map(item => {
+        const title = item.split('<title>')[1]?.split('</title>')[0] || ''
+        const link = item.split('<link>')[1]?.split('</link>')[0] || ''
 
-      return {
-        id: `revops-${link}`,
-        company: 'Unknown',
-        role: title,
-        platform: 'RevOps Careers',
-        url: link,
-        salary: null,
-        postedAt: null,
-      }
-    }).filter(job => matchesUser(job.role, '', user))
-
-  } catch { return [] }
+        return {
+          id: `revops-${link}`,
+          company: 'Unknown',
+          role: title,
+          platform: 'RevOps Careers',
+          url: link,
+          salary: null,
+          postedAt: null,
+        }
+      })
+      .filter(job => matchesUser(job.role, '', user))
+  } catch {
+    return []
+  }
 }
 
 async function fetchNoDesk(user: string) {
@@ -218,26 +242,29 @@ async function fetchNoDesk(user: string) {
     const text = await res.text()
     const items = text.split('<item>').slice(1)
 
-    return items.map(item => {
-      const title = item.split('<title>')[1]?.split('</title>')[0] || ''
-      const link = item.split('<link>')[1]?.split('</link>')[0] || ''
+    return items
+      .map(item => {
+        const title = item.split('<title>')[1]?.split('</title>')[0] || ''
+        const link = item.split('<link>')[1]?.split('</link>')[0] || ''
 
-      return {
-        id: `nodesk-${link}`,
-        company: 'Unknown',
-        role: title,
-        platform: 'NoDesk',
-        url: link,
-        salary: null,
-        postedAt: null,
-      }
-    }).filter(job => matchesUser(job.role, '', user))
-
-  } catch { return [] }
+        return {
+          id: `nodesk-${link}`,
+          company: 'Unknown',
+          role: title,
+          platform: 'NoDesk',
+          url: link,
+          salary: null,
+          postedAt: null,
+        }
+      })
+      .filter(job => matchesUser(job.role, '', user))
+  } catch {
+    return []
+  }
 }
 
 /* =============================
-   MAIN
+   MAIN API
 ============================= */
 
 export async function GET(request: Request) {
@@ -262,7 +289,6 @@ export async function GET(request: Request) {
     ...nodesk,
   ]
 
-  // Deduplicate
   const seen = new Set()
   const unique = combined.filter(job => {
     const key = `${job.company}-${job.role}`.toLowerCase()
@@ -271,7 +297,6 @@ export async function GET(request: Request) {
     return true
   })
 
-  // Sort newest first
   unique.sort((a, b) => {
     const dateA = a.postedAt ? new Date(a.postedAt).getTime() : 0
     const dateB = b.postedAt ? new Date(b.postedAt).getTime() : 0
