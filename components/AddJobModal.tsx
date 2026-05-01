@@ -8,10 +8,15 @@ type Props = {
   onSaved: () => void
 }
 
-const platforms = ['LinkedIn', 'Indeed', 'Company Website', 'We Work Remotely', 'Glassdoor', 'Other']
+const platforms = ['LinkedIn', 'Indeed', 'Company Website', 'We Work Remotely', 'Glassdoor', 'Remotive', 'Himalayas', 'Jobicy', 'Other']
 
 export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
   const isKyle = activeUser === 'kyle'
+  const accent = isKyle ? '#7c3aed' : '#2563eb'
+
+  const [url, setUrl] = useState('')
+  const [extracting, setExtracting] = useState(false)
+  const [extracted, setExtracted] = useState(false)
 
   const [form, setForm] = useState({
     company: '',
@@ -25,6 +30,29 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
 
   const [saving, setSaving] = useState(false)
 
+  const extractFromUrl = async () => {
+    if (!url) return
+    setExtracting(true)
+    try {
+      const res = await fetch('/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      })
+      const data = await res.json()
+      setForm(prev => ({
+        ...prev,
+        url,
+        platform: data.platform || prev.platform,
+      }))
+      setExtracted(true)
+    } catch {
+      setForm(prev => ({ ...prev, url }))
+      setExtracted(true)
+    }
+    setExtracting(false)
+  }
+
   const handleSubmit = async () => {
     if (!form.company || !form.role || !form.platform) return
     setSaving(true)
@@ -36,11 +64,12 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
         company: form.company,
         role: form.role,
         platform: form.platform,
-        url: form.url,
+        url: form.url || url,
         postedAt: form.postedAt,
         salaryMin: form.salaryStated && form.salary ? form.salary : null,
         salaryMax: form.salaryStated && form.salary ? form.salary : null,
         user: activeUser,
+        isManual: true,
       }),
     })
 
@@ -49,8 +78,6 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
     onClose()
   }
 
-  const accent = isKyle ? '#7c3aed' : '#2563eb'
-
   return (
     <div style={{
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
@@ -58,19 +85,67 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
       zIndex: 50, padding: 16,
     }}>
       <div style={{
-        background: '#0f172a', border: '1px solid #1e293b',
+        background: '#0f172a',
+        border: '2px solid #7c3aed',
         borderRadius: 16, padding: 24, width: '100%', maxWidth: 440,
+        maxHeight: '90vh', overflowY: 'auto',
       }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ color: 'white', fontSize: 18, fontWeight: 700 }}>Add Opportunity</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div>
+            <h2 style={{ color: 'white', fontSize: 18, fontWeight: 700 }}>Add Opportunity</h2>
+            <span style={{
+              fontSize: 11, padding: '2px 8px', borderRadius: 20,
+              background: '#2e1065', color: '#a78bfa', fontWeight: 600,
+            }}>
+              ✋ Manual Entry
+            </span>
+          </div>
           <button onClick={onClose} style={{ color: '#64748b', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer' }}>✕</button>
         </div>
 
+        {/* URL extractor */}
+        <div style={{ marginBottom: 16, background: '#1e293b', borderRadius: 10, padding: 12 }}>
+          <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 6 }}>
+            🔗 Paste job URL to auto-fill (Indeed, LinkedIn, anywhere)
+          </label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              type="text"
+              placeholder="https://..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              style={{
+                flex: 1, padding: '8px 12px',
+                background: '#0f172a', border: '1px solid #334155',
+                borderRadius: 8, color: 'white', fontSize: 13, outline: 'none',
+              }}
+            />
+            <button
+              onClick={extractFromUrl}
+              disabled={!url || extracting}
+              style={{
+                padding: '8px 14px', background: accent,
+                color: 'white', border: 'none', borderRadius: 8,
+                fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                opacity: !url || extracting ? 0.6 : 1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {extracting ? '...' : 'Extract'}
+            </button>
+          </div>
+          {extracted && (
+            <div style={{ fontSize: 11, color: '#4ade80', marginTop: 6 }}>
+              ✓ Platform detected — fill in company and role below
+            </div>
+          )}
+        </div>
+
         {/* Company */}
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Company</label>
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Company *</label>
           <input
             type="text"
             placeholder="e.g. Notion"
@@ -81,7 +156,7 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
         </div>
 
         {/* Role */}
-        <div style={{ marginBottom: 14 }}>
+        <div style={{ marginBottom: 12 }}>
           <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Role *</label>
           <input
             type="text"
@@ -93,7 +168,7 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
         </div>
 
         {/* Platform */}
-        <div style={{ marginBottom: 14 }}>
+        <div style={{ marginBottom: 12 }}>
           <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Platform *</label>
           <select
             value={form.platform}
@@ -105,20 +180,8 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
           </select>
         </div>
 
-        {/* URL */}
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Job URL</label>
-          <input
-            type="text"
-            placeholder="https://..."
-            value={form.url}
-            onChange={(e) => setForm({ ...form, url: e.target.value })}
-            style={{ width: '100%', padding: '8px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14, outline: 'none' }}
-          />
-        </div>
-
         {/* Date Posted */}
-        <div style={{ marginBottom: 14 }}>
+        <div style={{ marginBottom: 12 }}>
           <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Date Posted</label>
           <input
             type="date"
@@ -128,10 +191,10 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
           />
         </div>
 
-        {/* Salary toggle */}
+        {/* Salary */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <label style={{ fontSize: 12, color: '#94a3b8' }}>Salary stated in listing?</label>
+            <label style={{ fontSize: 12, color: '#94a3b8' }}>Monthly salary stated? (USD)</label>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 onClick={() => setForm({ ...form, salaryStated: true })}
@@ -141,9 +204,7 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
                   background: form.salaryStated ? accent : '#1e293b',
                   color: form.salaryStated ? 'white' : '#64748b',
                 }}
-              >
-                Yes
-              </button>
+              >Yes</button>
               <button
                 onClick={() => setForm({ ...form, salaryStated: false, salary: '' })}
                 style={{
@@ -152,12 +213,9 @@ export default function AddJobModal({ activeUser, onClose, onSaved }: Props) {
                   background: !form.salaryStated ? '#334155' : '#1e293b',
                   color: !form.salaryStated ? 'white' : '#64748b',
                 }}
-              >
-                No
-              </button>
+              >No</button>
             </div>
           </div>
-
           {form.salaryStated && (
             <input
               type="number"
