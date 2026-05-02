@@ -10,8 +10,9 @@ export async function PATCH(
   const job = await prisma.job.update({
     where: { id: params.id },
     data: {
-      stage: body.stage,
-      appliedAt: body.stage === 'applied' ? new Date() : undefined,
+      ...(body.stage !== undefined && { stage: body.stage }),
+      ...(body.feedOnly !== undefined && { feedOnly: body.feedOnly }),
+      ...(body.stage === 'applied' && { appliedAt: new Date() }),
       lastActionAt: new Date(),
     },
   })

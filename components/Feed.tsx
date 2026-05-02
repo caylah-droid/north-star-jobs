@@ -5,6 +5,7 @@ import PitchModal from './PitchModal'
 
 type FeedJob = {
   id: string
+  dbId?: string
   company: string
   role: string
   platform: string
@@ -68,7 +69,7 @@ export default function Feed({ activeUser }: Props) {
     setExtracting(false)
   }
 
-const handleConfirm = async () => {
+  const handleConfirm = async () => {
     if (!preview) return
     try {
       await fetch('/api/jobs', {
@@ -85,6 +86,7 @@ const handleConfirm = async () => {
           user: activeUser,
           track: null,
           isManual: true,
+          feedOnly: true,
           description: preview.description || null,
         }),
       })
@@ -98,22 +100,32 @@ const handleConfirm = async () => {
   const addToPipeline = async (job: FeedJob) => {
     setAdding(job.id)
     try {
-      await fetch('/api/jobs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          company: job.company,
-          role: job.role,
-          platform: job.platform,
-          url: job.url,
-          postedAt: job.postedAt,
-          salaryMin: null,
-          salaryMax: null,
-          user: activeUser,
-          track: null,
-          isManual: job.isManual ?? false,
-        }),
-      })
+      if (job.isManual && job.dbId) {
+        await fetch(`/api/jobs/${job.dbId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ feedOnly: false }),
+        })
+      } else {
+        await fetch('/api/jobs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            company: job.company,
+            role: job.role,
+            platform: job.platform,
+            url: job.url,
+            postedAt: job.postedAt,
+            salaryMin: null,
+            salaryMax: null,
+            user: activeUser,
+            track: null,
+            isManual: false,
+            feedOnly: false,
+            description: job.description || null,
+          }),
+        })
+      }
       setAdded(prev => new Set(Array.from(prev).concat(job.id)))
     } catch { console.error('Failed to add job') }
     setAdding(null)
@@ -229,7 +241,7 @@ const handleConfirm = async () => {
         <span style={{ color: '#94a3b8' }}><span style={{ color: 'white', fontWeight: 600 }}>{jobs.length}</span> roles found</span>
         <span style={{ color: '#94a3b8' }}><span style={{ color: '#4ade80', fontWeight: 600 }}>{jobs.filter(j => isFresh(j.postedAt)).length}</span> fresh (&lt;48h)</span>
         <span style={{ color: '#94a3b8' }}><span style={{ color: '#a78bfa', fontWeight: 600 }}>{jobs.filter(j => j.isManual).length}</span> manual</span>
-        <span style={{ color: '#94a3b8' }}>Sources: <span style={{ color: 'white' }}>Remotive · We Work Remotely · Jobicy · Arbeitnow · Himalayas</span></span>
+        <span style={{ color: '#94a3b8' }}>Sources: <span style={{ color: 'white' }}>Remotive · WWR · Jobicy · Arbeitnow · Himalayas</span></span>
       </div>
 
       {/* Feed */}
@@ -281,7 +293,6 @@ const handleConfirm = async () => {
 
                 <div style={{ color: '#94a3b8', fontSize: 14, marginBottom: 4 }}>{job.role}</div>
 
-                {/* Inline edit form for manual cards */}
                 {job.isManual && editingId === job.id && editForm ? (
                   <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <input value={editForm.company} onChange={e => setEditForm(f => f ? { ...f, company: e.target.value } : f)} placeholder="Company" style={{ padding: '6px 10px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: 'white', fontSize: 12, outline: 'none' }} />

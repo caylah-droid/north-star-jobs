@@ -5,11 +5,7 @@ function scoreJob(job: any, user: string): number {
   let score = 0
 
   const stageScores: Record<string, number> = {
-    offer: 80,
-    interview: 50,
-    applied: 20,
-    prospect: 0,
-    rejected: -100,
+    offer: 80, interview: 50, applied: 20, prospect: 0, rejected: -100,
   }
   score += stageScores[job.stage] || 0
 
@@ -24,12 +20,8 @@ function scoreJob(job: any, user: string): number {
   if (job.salaryMin && job.salaryMin >= threshold) score += 30
 
   const platformScores: Record<string, number> = {
-    'Company Website': 20,
-    'We Work Remotely': 15,
-    'LinkedIn': 10,
-    'Indeed': 8,
-    'Glassdoor': 6,
-    'Other': 5,
+    'Company Website': 20, 'We Work Remotely': 15, 'LinkedIn': 10,
+    'Indeed': 8, 'Glassdoor': 6, 'Other': 5,
   }
   score += platformScores[job.platform] || 5
 
@@ -40,7 +32,9 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const user = searchParams.get('user') || 'caylah'
 
-  const jobs = await prisma.job.findMany({ where: { user } })
+  const jobs = await prisma.job.findMany({
+    where: { user, feedOnly: false },
+  })
   const threshold = user === 'caylah' ? 5400 : 2700
 
   const scored = await Promise.all(
@@ -76,12 +70,8 @@ export async function POST(request: Request) {
   const isHighValue = body.salaryMin ? parseInt(body.salaryMin) >= threshold : false
 
   const platformScores: Record<string, number> = {
-    'Company Website': 20,
-    'We Work Remotely': 15,
-    'LinkedIn': 10,
-    'Indeed': 8,
-    'Glassdoor': 6,
-    'Other': 5,
+    'Company Website': 20, 'We Work Remotely': 15, 'LinkedIn': 10,
+    'Indeed': 8, 'Glassdoor': 6, 'Other': 5,
   }
 
   let score = 0
@@ -96,7 +86,7 @@ export async function POST(request: Request) {
       platform: body.platform,
       url: body.url || null,
       salaryMin: body.salaryMin ? parseInt(body.salaryMin) : null,
-      salaryMax: body.salaryMin ? parseInt(body.salaryMin) : null,
+      salaryMax: body.salaryMax ? parseInt(body.salaryMax) : null,
       user: body.user,
       track: body.track || null,
       stage: 'prospect',
@@ -104,6 +94,9 @@ export async function POST(request: Request) {
       isFresh,
       isHighValue,
       priorityScore: score,
+      isManual: body.isManual ?? false,
+      feedOnly: body.feedOnly ?? false,
+      description: body.description || null,
     },
   })
 
