@@ -160,7 +160,7 @@ export async function GET(request: Request) {
     fetchJobicy(user),
     fetchHimalayas(user),
     prisma.job.findMany({
-      where: { user, isManual: true },
+      where: { user, isManual: true } as any,
       orderBy: { createdAt: 'desc' },
     }).catch(() => []),
   ])
