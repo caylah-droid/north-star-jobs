@@ -68,24 +68,31 @@ export default function Feed({ activeUser }: Props) {
     setExtracting(false)
   }
 
-  const handleConfirm = () => {
+const handleConfirm = async () => {
     if (!preview) return
-    const card: FeedJob = {
-      id: `manual-${Date.now()}`,
-      company: preview.company || 'Unknown',
-      role: preview.role || 'Role',
-      platform: preview.platform,
-      url: pasteUrl.trim(),
-      salary: null,
-      postedAt: new Date().toISOString(),
-      source: 'manual',
-      description: preview.description || null,
-      isManual: true,
-    }
-    setJobs(prev => [card, ...prev])
+    try {
+      await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company: preview.company || 'Unknown',
+          role: preview.role || 'Role',
+          platform: preview.platform,
+          url: pasteUrl.trim(),
+          postedAt: new Date().toISOString(),
+          salaryMin: null,
+          salaryMax: null,
+          user: activeUser,
+          track: null,
+          isManual: true,
+          description: preview.description || null,
+        }),
+      })
+    } catch { console.error('Failed to save manual job') }
     setPasteUrl('')
     setPreview(null)
     setPreviewError('')
+    await loadFeed()
   }
 
   const addToPipeline = async (job: FeedJob) => {
