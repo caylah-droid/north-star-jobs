@@ -1,3 +1,4 @@
+// components/Feed.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -13,17 +14,31 @@ type FeedJob = {
   postedAt: string | null
   source: string
   description: string | null
+  isManual?: boolean
 }
 
 type Props = { activeUser: 'caylah' | 'kyle' }
 
 export default function Feed({ activeUser }: Props) {
   const isKyle = activeUser === 'kyle'
+  const accent = isKyle ? '#7c3aed' : '#2563eb'
+
   const [jobs, setJobs] = useState<FeedJob[]>([])
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState<string | null>(null)
   const [added, setAdded] = useState<Set<string>>(new Set())
   const [pitchJob, setPitchJob] = useState<FeedJob | null>(null)
+
+  // --- URL paste state ---
+  const [pasteUrl, setPasteUrl] = useState('')
+  const [extracting, setExtracting] = useState(false)
+  const [preview, setPreview] = useState<{
+    company: string
+    role: string
+    platform: string
+    description: string
+  } | null>(null)
+  const [previewError, setPreviewError] = useState('')
 
   const loadFeed = async () => {
     setLoading(true)
@@ -38,6 +53,54 @@ export default function Feed({ activeUser }: Props) {
   }
 
   useEffect(() => { loadFeed() }, [activeUser])
+
+  // --- Extract from URL ---
+  const handleExtract = async () => {
+    if (!pasteUrl.trim()) return
+    setExtracting(true)
+    setPreview(null)
+    setPreviewError('')
+    try {
+      const res = await fetch('/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: pasteUrl.trim() }),
+      })
+      const data = await res.json()
+      setPreview({
+        company: '',
+        role: data.title || '',
+        platform: data.platform || 'Other',
+        description: data.description || '',
+      })
+    } catch {
+      setPreview({ company: '', role: '', platform: 'Other', description: '' })
+      setPreviewError('Could not fetch page — fill in manually below.')
+    }
+    setExtracting(false)
+  }
+
+  // --- Confirm manual card → prepend to feed ---
+  const handleConfirm = () => {
+    if (!preview) return
+    const id = `manual-${Date.now()}`
+    const card: FeedJob = {
+      id,
+      company: preview.company || 'Unknown',
+      role: preview.role || 'Role',
+      platform: preview.platform,
+      url: pasteUrl.trim(),
+      salary: null,
+      postedAt: new Date().toISOString(),
+      source: 'manual',
+      description: preview.description || null,
+      isManual: true,
+    }
+    setJobs(prev => [card, ...prev])
+    setPasteUrl('')
+    setPreview(null)
+    setPreviewError('')
+  }
 
   const addToPipeline = async (job: FeedJob) => {
     setAdding(job.id)
@@ -55,6 +118,7 @@ export default function Feed({ activeUser }: Props) {
           salaryMax: null,
           user: activeUser,
           track: null,
+          isManual: job.isManual ?? false,
         }),
       })
       setAdded(prev => new Set(Array.from(prev).concat(job.id)))
@@ -67,6 +131,7 @@ export default function Feed({ activeUser }: Props) {
   const timeAgo = (dateStr: string | null) => {
     if (!dateStr) return 'Unknown'
     const hours = (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60)
+    if (hours < 1) return 'Just now'
     if (hours < 24) return `${Math.round(hours)}h ago`
     if (hours < 48) return 'Yesterday'
     return `${Math.round(hours / 24)}d ago`
@@ -77,11 +142,9 @@ export default function Feed({ activeUser }: Props) {
     return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60) <= 48
   }
 
-  const accent = isKyle ? '#7c3aed' : '#2563eb'
-
   return (
     <div>
-      {/* Header */}
+      {/* ── Header ── */}
       <div className="flex-between" style={{ marginBottom: 8 }}>
         <div>
           <div className="section-title">Live Job Feed</div>
@@ -103,7 +166,156 @@ export default function Feed({ activeUser }: Props) {
         </button>
       </div>
 
-      {/* Stats bar */}
+      {/* ── URL Paste Bar ── */}
+      <div style={{
+        background: '#0f172a',
+        border: '1px solid #334155',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 16,
+      }}>
+        <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+          🔗 Found a job elsewhere?
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            type="text"
+            placeholder="Paste any job URL — Indeed, LinkedIn, company site..."
+            value={pasteUrl}
+            onChange={e => setPasteUrl(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !extracting && pasteUrl && handleExtract()}
+            style={{
+              flex: 1,
+              padding: '10px 14px',
+              background: '#1e293b',
+              border: '1px solid #334155',
+              borderRadius: 8,
+              color: 'white',
+              fontSize: 13,
+              outline: 'none',
+            }}
+          />
+          <button
+            onClick={handleExtract}
+            disabled={!pasteUrl.trim() || extracting}
+            style={{
+              padding: '10px 18px',
+              background: accent,
+              color: 'white',
+              border: 'none',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: pasteUrl.trim() && !extracting ? 'pointer' : 'not-allowed',
+              opacity: !pasteUrl.trim() || extracting ? 0.5 : 1,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {extracting ? '⏳ Fetching...' : 'Add →'}
+          </button>
+        </div>
+
+        {/* Preview / edit card */}
+        {preview && (
+          <div style={{
+            marginTop: 12,
+            background: '#1e293b',
+            border: '1px solid #7c3aed',
+            borderLeft: '3px solid #7c3aed',
+            borderRadius: 10,
+            padding: 14,
+          }}>
+            <div style={{ fontSize: 11, color: '#a78bfa', fontWeight: 700, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              ✋ Manual — confirm details
+            </div>
+            {previewError && (
+              <div style={{ fontSize: 12, color: '#f87171', marginBottom: 8 }}>{previewError}</div>
+            )}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+              <input
+                placeholder="Company name"
+                value={preview.company}
+                onChange={e => setPreview(p => p ? { ...p, company: e.target.value } : p)}
+                style={{
+                  flex: 1, minWidth: 120,
+                  padding: '8px 12px',
+                  background: '#0f172a',
+                  border: '1px solid #334155',
+                  borderRadius: 8,
+                  color: 'white',
+                  fontSize: 13,
+                  outline: 'none',
+                }}
+              />
+              <input
+                placeholder="Role / job title"
+                value={preview.role}
+                onChange={e => setPreview(p => p ? { ...p, role: e.target.value } : p)}
+                style={{
+                  flex: 2, minWidth: 160,
+                  padding: '8px 12px',
+                  background: '#0f172a',
+                  border: '1px solid #334155',
+                  borderRadius: 8,
+                  color: 'white',
+                  fontSize: 13,
+                  outline: 'none',
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input
+                placeholder="Platform (e.g. LinkedIn)"
+                value={preview.platform}
+                onChange={e => setPreview(p => p ? { ...p, platform: e.target.value } : p)}
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  background: '#0f172a',
+                  border: '1px solid #334155',
+                  borderRadius: 8,
+                  color: 'white',
+                  fontSize: 13,
+                  outline: 'none',
+                }}
+              />
+              <button
+                onClick={handleConfirm}
+                disabled={!preview.company && !preview.role}
+                style={{
+                  padding: '8px 18px',
+                  background: '#7c3aed',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                ✓ Add to Feed
+              </button>
+              <button
+                onClick={() => { setPreview(null); setPreviewError('') }}
+                style={{
+                  padding: '8px 12px',
+                  background: '#1e293b',
+                  color: '#64748b',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Stats Bar ── */}
       <div style={{
         background: '#0f172a', border: '1px solid #1e293b',
         borderRadius: 10, padding: '10px 16px',
@@ -119,17 +331,20 @@ export default function Feed({ activeUser }: Props) {
           </span> fresh (&lt;48h)
         </span>
         <span style={{ color: '#94a3b8' }}>
+          <span style={{ color: '#a78bfa', fontWeight: 600 }}>
+            {jobs.filter(j => j.isManual).length}
+          </span> manual
+        </span>
+        <span style={{ color: '#94a3b8' }}>
           Sources: <span style={{ color: 'white' }}>Remotive · We Work Remotely · Jobicy · Arbeitnow · Himalayas</span>
         </span>
       </div>
 
-      {/* Feed */}
+      {/* ── Feed ── */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60 }}>
           <div style={{ color: '#64748b', fontSize: 14 }}>Scanning job sources...</div>
-          <div style={{ color: '#334155', fontSize: 12, marginTop: 8 }}>
-            Pulling from 5 sources simultaneously
-          </div>
+          <div style={{ color: '#334155', fontSize: 12, marginTop: 8 }}>Pulling from 5 sources simultaneously</div>
         </div>
       ) : jobs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 60 }}>
@@ -143,22 +358,25 @@ export default function Feed({ activeUser }: Props) {
               key={job.id}
               style={{
                 background: '#0f172a',
-                border: `1px solid ${added.has(job.id) ? '#166534' : '#1e293b'}`,
+                border: job.isManual
+                  ? '1px solid #7c3aed'
+                  : `1px solid ${added.has(job.id) ? '#166534' : '#1e293b'}`,
+                borderLeft: job.isManual ? '3px solid #7c3aed' : undefined,
                 borderRadius: 12,
-                padding: 16,
+                padding: '16px 18px',
                 marginBottom: 10,
                 display: 'flex',
-                alignItems: 'flex-start',
                 gap: 14,
+                alignItems: 'flex-start',
+                transition: 'border-color 0.2s',
               }}
             >
-              {/* Avatar */}
+              {/* Company initial */}
               <div style={{
-                width: 42, height: 42, borderRadius: 10,
-                background: '#1e293b', display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                fontSize: 16, fontWeight: 700, color: '#94a3b8',
-                flexShrink: 0,
+                width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                background: job.isManual ? '#2e1065' : '#1e293b',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 16, fontWeight: 700, color: job.isManual ? '#a78bfa' : '#475569',
               }}>
                 {job.company?.[0] || '?'}
               </div>
@@ -169,7 +387,14 @@ export default function Feed({ activeUser }: Props) {
                   <span style={{ color: 'white', fontWeight: 600, fontSize: 15 }}>
                     {job.company}
                   </span>
-                  {isFresh(job.postedAt) && (
+
+                  {/* Badges */}
+                  {job.isManual && (
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: '#2e1065', color: '#a78bfa' }}>
+                      ✋ Manual
+                    </span>
+                  )}
+                  {isFresh(job.postedAt) && !job.isManual && (
                     <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: '#14532d', color: '#4ade80' }}>
                       🔥 Fresh
                     </span>
@@ -193,9 +418,7 @@ export default function Feed({ activeUser }: Props) {
                 )}
 
                 {job.salary && (
-                  <div style={{ color: '#4ade80', fontSize: 12 }}>
-                    {job.salary}
-                  </div>
+                  <div style={{ color: '#4ade80', fontSize: 12 }}>{job.salary}</div>
                 )}
               </div>
 
