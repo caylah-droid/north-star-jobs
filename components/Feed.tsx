@@ -297,7 +297,6 @@ const handleConfirm = async () => {
                     {job.description && (
                       <div style={{ color: '#475569', fontSize: 12, lineHeight: 1.5, marginBottom: 6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{job.description}</div>
                     )}
-                    )}
                     {job.salary && (
                       <div style={{ color: '#4ade80', fontSize: 12 }}>{job.salary}</div>
                     )}
