@@ -215,7 +215,19 @@ export default function JobBoard({ activeUser }: Props) {
                       </button>
                     )}
                     <button
-                      onClick={() => deleteJob(job.id)}
+                      <button
+  onClick={() => updateStage(job.id, 'Rejected')}
+  style={{ padding: '5px 10px', background: '#1e1a2e', color: '#f87171', border: '1px solid #7f1d1d', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+>
+  👎 Reject
+</button>
+<button
+  onClick={() => deleteJob(job.id)}
+  style={{ padding: '5px 10px', background: '#1e293b', color: '#475569', border: 'none', borderRadius: 6, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}
+  title="Remove from pipeline entirely"
+>
+  🗑️
+</button>
                       style={{
                         padding: '4px 8px', fontSize: 11,
                         background: '#0f172a', color: '#ef4444',
