@@ -23,7 +23,9 @@ model Job {
   user            String
   track           String?
   stage           String     @default("prospect")
-  priorityScore   Int        @default(0)
+  priorityScore Int      @default(0)
+  isManual      Boolean  @default(false)
+  description   String?
   isFresh         Boolean    @default(false)
   isHighValue     Boolean    @default(false)
   isStrongMatch   Boolean    @default(false)
