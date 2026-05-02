@@ -31,7 +31,7 @@ export default function Feed({ activeUser }: Props) {
 
   const [pasteUrl, setPasteUrl] = useState('')
   const [extracting, setExtracting] = useState(false)
-  const [preview, setPreview] = useState<{ company: string; role: string; platform: string; description: string } | null>(null)
+  const [preview, setPreview] = useState<{ company: string; role: string; platform: string; description: string; salary: string } | null>(null)
   const [previewError, setPreviewError] = useState('')
 
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -61,9 +61,9 @@ export default function Feed({ activeUser }: Props) {
         body: JSON.stringify({ url: pasteUrl.trim() }),
       })
       const data = await res.json()
-      setPreview({ company: '', role: data.title || '', platform: data.platform || 'Other', description: data.description || '' })
+      setPreview({ company: '', role: data.title || '', platform: data.platform || 'Other', description: data.description || '', salary: '' })
     } catch {
-      setPreview({ company: '', role: '', platform: 'Other', description: '' })
+      setPreview({ company: '', role: '', platform: 'Other', description: '', salary: '' })
       setPreviewError('Could not fetch page — fill in manually.')
     }
     setExtracting(false)
@@ -81,8 +81,8 @@ export default function Feed({ activeUser }: Props) {
           platform: preview.platform,
           url: pasteUrl.trim(),
           postedAt: new Date().toISOString(),
-          salaryMin: null,
-          salaryMax: null,
+          salaryMin: preview.salary ? parseInt(preview.salary.replace(/[^0-9]/g, '')) : null,
+          salaryMax: preview.salary ? parseInt(preview.salary.replace(/[^0-9]/g, '')) : null,
           user: activeUser,
           track: null,
           isManual: true,
@@ -218,6 +218,12 @@ export default function Feed({ activeUser }: Props) {
                 value={preview.platform}
                 onChange={e => setPreview(p => p ? { ...p, platform: e.target.value } : p)}
                 style={{ flex: 1, padding: '8px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 13, outline: 'none' }}
+              />
+              <input
+                placeholder="Salary ($/mo)"
+                value={preview.salary}
+                onChange={e => setPreview(p => p ? { ...p, salary: e.target.value } : p)}
+                style={{ width: 130, padding: '8px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 13, outline: 'none' }}
               />
               <button
                 onClick={handleConfirm}
