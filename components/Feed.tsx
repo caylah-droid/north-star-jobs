@@ -36,6 +36,7 @@ export default function Feed({ activeUser }: Props) {
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<{ company: string; role: string; description: string } | null>(null)
+  const [sourceFilter, setSourceFilter] = useState<string>('all')
 
   const loadFeed = async () => {
     setLoading(true)
@@ -145,6 +146,14 @@ export default function Feed({ activeUser }: Props) {
     return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60) <= 48
   }
 
+const sources = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'arbeitnow', 'himalayas', 'remoteok', 'workingnomads', '4dayweek']
+  const sourceLabels: Record<string, string> = {
+    all: 'All', manual: '✋ Manual', remotive: 'Remotive',
+    weworkremotely: 'WWR', jobicy: 'Jobicy', arbeitnow: 'Arbeitnow',
+    himalayas: 'Himalayas', remoteok: 'RemoteOK', workingnomads: 'Working Nomads', '4dayweek': '4 Day Week'
+  }
+  const filteredJobs = sourceFilter === 'all' ? jobs : jobs.filter(j => j.source === sourceFilter)
+
   return (
     <div>
       {/* Header */}
@@ -247,7 +256,25 @@ export default function Feed({ activeUser }: Props) {
         <span style={{ color: '#94a3b8' }}><span style={{ color: 'white', fontWeight: 600 }}>{jobs.length}</span> roles found</span>
         <span style={{ color: '#94a3b8' }}><span style={{ color: '#4ade80', fontWeight: 600 }}>{jobs.filter(j => isFresh(j.postedAt)).length}</span> fresh (&lt;48h)</span>
         <span style={{ color: '#94a3b8' }}><span style={{ color: '#a78bfa', fontWeight: 600 }}>{jobs.filter(j => j.isManual).length}</span> manual</span>
-        <span style={{ color: '#94a3b8' }}>Sources: <span style={{ color: 'white' }}>Remotive · WWR · Jobicy · Arbeitnow · Himalayas</span></span>
+        <span style={{ color: '#94a3b8' }}>Sources: <span style={{ color: 'white' }}>Remotive · WWR · Jobicy · Arbeitnow · Himalayas · RemoteOK · Working Nomads · 4 Day Week</span></span>
+      </div>
+
+      {/* Source Filter */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        {sources.map(s => (
+          <button
+            key={s}
+            onClick={() => setSourceFilter(s)}
+            style={{
+              padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+              cursor: 'pointer', border: 'none',
+              background: sourceFilter === s ? accent : '#1e293b',
+              color: sourceFilter === s ? 'white' : '#64748b',
+            }}
+          >
+            {sourceLabels[s]}
+          </button>
+        ))}
       </div>
 
       {/* Feed */}
@@ -256,14 +283,14 @@ export default function Feed({ activeUser }: Props) {
           <div style={{ color: '#64748b', fontSize: 14 }}>Scanning job sources...</div>
           <div style={{ color: '#334155', fontSize: 12, marginTop: 8 }}>Pulling from 5 sources simultaneously</div>
         </div>
-      ) : jobs.length === 0 ? (
+      ) : filteredJobs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 60 }}>
           <div style={{ color: '#64748b', fontSize: 14 }}>No matching roles found right now.</div>
           <div style={{ color: '#334155', fontSize: 12, marginTop: 8 }}>Try refreshing in a few hours.</div>
         </div>
       ) : (
         <div>
-          {jobs.map((job) => (
+          {filteredJobs.map((job) => (
             <div
               key={job.id}
               style={{
