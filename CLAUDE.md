@@ -22,15 +22,15 @@ Next.js 14, TypeScript, Tailwind CSS, Prisma ORM, Neon Postgres, Vercel
 - app/api/feed/route.ts — Live job feed (8 sources)
 - app/api/pitch/route.ts — Gemini pitch generator
 - app/api/extract/route.ts — URL extraction (OG tags, platform detection)
-- app/api/metrics/route.ts — (to be created) live metrics
+- app/api/metrics/route.ts — Live metrics (pipeline counts, rates, flags)
 - components/Header.tsx — User toggle (Caylah / Kyle)
 - components/Feed.tsx — Live feed + URL paste + manual cards + source filter
-- components/JobBoard.tsx — Pipeline (Top 5 priority + Kanban)
+- components/JobBoard.tsx — Pipeline (collapsible Top 5 + responsive Kanban)
 - components/AddJobModal.tsx — Manual job entry form
 - components/PitchModal.tsx — Cover letter + LinkedIn outreach
-- components/DailyActions.tsx — Today's prioritised actions per user
+- components/DailyActions.tsx — Today's contract (scoreboard-first layout)
 - components/CompanyTargets.tsx — Target companies (non-functional)
-- components/Metrics.tsx — Pipeline metrics (static placeholders)
+- components/Metrics.tsx — Pipeline metrics (scoreboard-first layout, live data)
 - lib/prisma.ts — Prisma client singleton
 - prisma/schema.prisma — Database schema
 
@@ -54,6 +54,11 @@ appliedAt, lastActionAt, followUpDue, notes, positioningNote
 - ✅ Phase 10: Language filter — English only (non-English keyword detection)
 - ✅ Phase 11: Reject vs Delete — 👎 Reject moves to rejected stage, 🗑️ permanently deletes
 - ✅ Phase 12: Pipeline UI — collapsible Top 5, responsive kanban (list view on narrow screens)
+- ✅ Phase 13: Today page redesign — contract-first layout, circle checkboxes, progress bar, identity-anchored quotes
+- ✅ Phase 14: Metrics redesign — scoreboard-first, pipeline bar, strategy health rows, flags
+
+## Tab Order (app/page.tsx)
+📊 Metrics → ⚡ Today → 🔭 Feed → 🎯 Pipeline → 🏢 Companies
 
 ## Feed Sources
 | Source | Method | User |
@@ -95,7 +100,6 @@ appliedAt, lastActionAt, followUpDue, notes, positioningNote
 
 ## Still To Build
 - 🔲 Pitch generator on pipeline jobs — ✨ Pitch button missing from JobBoard cards
-- 🔲 Live metrics — wire Metrics.tsx to real DB data
 - 🔲 Company tab — Research and Outreach buttons functional
 - 🔲 Next.js security upgrade — 14.2.3 → patched version
 - 🔲 Himalayas URL — verify slug fix working in production
@@ -107,6 +111,14 @@ appliedAt, lastActionAt, followUpDue, notes, positioningNote
 - Caylah = blue (#2563eb), Kyle = purple (#7c3aed)
 - Manual cards = purple border
 - kanban-desktop / kanban-mobile classes in globals.css control responsive kanban layout (breakpoint: 700px)
+- All pages: scoreboard/contract block first, details below — everything readable in one screen
+
+## UI Design Principles
+- Contract-first layout: show the score before the tasks
+- Numbers should punch, not consume — 26–32px not 48px+
+- One rotating quote per page — identity-anchored, not cheerleader-positive
+- Descriptions collapse on completion — page quiets as progress builds
+- Flags only render when there's a problem — no noise when on track
 
 ## Coding Rules
 1. One file at a time
@@ -125,4 +137,5 @@ appliedAt, lastActionAt, followUpDue, notes, positioningNote
 | 2026-04-29 | Pitch generator debug | Complete |
 | 2026-05-02 | Feed URL paste, feedOnly flow, language filter | Complete |
 | 2026-05-03 | Reject vs Delete, source filter, 3 new feed sources | Complete |
-| 2026-05-03 | Pipeline UI — collapsible Top 5, responsive kanban, globals.css kanban classes | Complete |
+| 2026-05-03 | Pipeline UI — collapsible Top 5, responsive kanban | Complete |
+| 2026-05-03 | Today + Metrics redesign — scoreboard-first layout | Complete |
