@@ -1,81 +1,87 @@
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+      url      = env("DATABASE_URL")
 }
 
 model Job {
-  id              String     @id @default(cuid())
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @default(now()) @updatedAt
-  company         String
-  role            String
-  platform        String
-  url             String?
-  salaryMin       Int?
-  salaryMax       Int?
-  currency        String     @default("USD")
-  location        String?
-  remote          Boolean    @default(true)
-  user            String
-  track           String?
-  stage           String     @default("prospect")
-  priorityScore   Int        @default(0)
-  isFresh         Boolean    @default(false)
-  isHighValue     Boolean    @default(false)
-  isStrongMatch   Boolean    @default(false)
-  isManual        Boolean    @default(false)
-  feedOnly        Boolean    @default(false)
-  description     String?
-  postedAt        DateTime?
-  appliedAt       DateTime?
-  lastActionAt    DateTime?
-  followUpDue     DateTime?
-  notes           String?
-  positioningNote String?
-  actions         Action[]
-  outreach        Outreach[]
+    id              String     @id @default(cuid())
+      createdAt       DateTime   @default(now())
+        updatedAt       DateTime   @default(now()) @updatedAt
+          company         String
+            role            String
+              platform        String
+                url             String?
+                  salaryMin       Int?
+                    salaryMax       Int?
+                      currency        String     @default("USD")
+                        location        String?
+                          remote          Boolean    @default(true)
+                            user            String
+                              track           String?
+                                stage           String     @default("prospect")
+                                  priorityScore   Int        @default(0)
+                                    isFresh         Boolean    @default(false)
+                                      isHighValue     Boolean    @default(false)
+                                        isStrongMatch   Boolean    @default(false)
+                                          isManual        Boolean    @default(false)
+                                            feedOnly        Boolean    @default(false)
+                                              description     String?
+                                                postedAt        DateTime?
+                                                  appliedAt       DateTime?
+                                                    lastActionAt    DateTime?
+                                                      followUpDue     DateTime?
+                                                        notes           String?
+                                                          positioningNote String?
+                                                            actions         Action[]
+                                                              outreach        Outreach[]
 }
 
 model Outreach {
-  id          String    @id @default(cuid())
-  createdAt   DateTime  @default(now())
-  jobId       String
-  contactName String?
-  contactRole String?
-  platform    String?
-  message     String?
-  sentAt      DateTime?
-  repliedAt   DateTime?
-  outcome     String?
-  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+    id          String    @id @default(cuid())
+      createdAt   DateTime  @default(now())
+        jobId       String
+          contactName String?
+            contactRole String?
+              platform    String?
+                message     String?
+                  sentAt      DateTime?
+                    repliedAt   DateTime?
+                      outcome     String?
+                        job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Action {
-  id        String    @id @default(cuid())
-  createdAt DateTime  @default(now())
-  jobId     String
-  type      String
-  notes     String?
-  doneAt    DateTime?
-  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+    id        String    @id @default(cuid())
+      createdAt DateTime  @default(now())
+        jobId     String
+          type      String
+            notes     String?
+              doneAt    DateTime?
+                job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Company {
-  id            String    @id @default(cuid())
-  createdAt     DateTime  @default(now())
-  name          String
-  website       String?
-  industry      String?
-  size          String?
-  targetUser    String
-  track         String?
-  tier          Int       @default(2)
-  notes         String?
-  linkedinUrl   String?
-  hiringPageUrl String?
-  lastChecked   DateTime?
+    id            String    @id @default(cuid())
+      createdAt     DateTime  @default(now())
+        name          String
+          website       String?
+            industry      String?
+              size          String?
+                targetUser    String
+                  track         String?
+                    tier          Int       @default(2)
+                      notes         String?
+                        linkedinUrl   String?
+                          hiringPageUrl String?
+                            lastChecked   DateTime?
+}
+}
+}
+}
+}
+}
 }
