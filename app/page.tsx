@@ -10,7 +10,7 @@ import Metrics from '@/components/Metrics'
 
 export default function Home() {
   const [activeUser, setActiveUser] = useState<'caylah' | 'kyle'>('caylah')
-  const [activeTab, setActiveTab] = useState<'feed' | 'actions' | 'jobs' | 'companies' | 'metrics'>('feed')
+  const [activeTab, setActiveTab] = useState<'metrics' | 'actions' | 'feed' | 'jobs' | 'companies'>('metrics')
 
   return (
     <main>
@@ -18,11 +18,11 @@ export default function Home() {
 
       <div className="tab-nav">
         {[
-          { id: 'feed', label: '🔭 Feed' },
+          { id: 'metrics', label: '📊 Metrics' },
           { id: 'actions', label: '⚡ Today' },
+          { id: 'feed', label: '🔭 Feed' },
           { id: 'jobs', label: '🎯 Pipeline' },
           { id: 'companies', label: '🏢 Companies' },
-          { id: 'metrics', label: '📊 Metrics' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -35,11 +35,11 @@ export default function Home() {
       </div>
 
       <div className="content">
-        {activeTab === 'feed' && <Feed activeUser={activeUser} />}
+        {activeTab === 'metrics' && <Metrics activeUser={activeUser} />}
         {activeTab === 'actions' && <DailyActions activeUser={activeUser} />}
+        {activeTab === 'feed' && <Feed activeUser={activeUser} />}
         {activeTab === 'jobs' && <JobBoard activeUser={activeUser} />}
         {activeTab === 'companies' && <CompanyTargets activeUser={activeUser} />}
-        {activeTab === 'metrics' && <Metrics activeUser={activeUser} />}
       </div>
     </main>
   )
