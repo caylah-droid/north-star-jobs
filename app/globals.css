@@ -345,3 +345,11 @@ body {
   padding: 2px 8px;
   border-radius: 20px;
 }
+/* ── Kanban responsive layout ── */
+.kanban-desktop { display: grid; }
+.kanban-mobile  { display: none; }
+
+@media (max-width: 700px) {
+  .kanban-desktop { display: none; }
+  .kanban-mobile  { display: block; }
+}
