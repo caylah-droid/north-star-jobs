@@ -53,6 +53,7 @@ appliedAt, lastActionAt, followUpDue, notes, positioningNote
 - ✅ Phase 9: Feed source filter — filter by source buttons
 - ✅ Phase 10: Language filter — English only (non-English keyword detection)
 - ✅ Phase 11: Reject vs Delete — 👎 Reject moves to rejected stage, 🗑️ permanently deletes
+- ✅ Phase 12: Pipeline UI — collapsible Top 5, responsive kanban (list view on narrow screens)
 
 ## Feed Sources
 | Source | Method | User |
@@ -93,7 +94,7 @@ appliedAt, lastActionAt, followUpDue, notes, positioningNote
 - Kyle: LegalTech CSM/Marketing Ops, $2,700/mo, purple #7c3aed
 
 ## Still To Build
-- 🔲 Pipeline UI — mobile/half-screen fixes (compact Top 5, list/kanban toggle)
+- 🔲 Pitch generator on pipeline jobs — ✨ Pitch button missing from JobBoard cards
 - 🔲 Live metrics — wire Metrics.tsx to real DB data
 - 🔲 Company tab — Research and Outreach buttons functional
 - 🔲 Next.js security upgrade — 14.2.3 → patched version
@@ -105,6 +106,7 @@ appliedAt, lastActionAt, followUpDue, notes, positioningNote
 - Inline styles for dynamic/conditional values
 - Caylah = blue (#2563eb), Kyle = purple (#7c3aed)
 - Manual cards = purple border
+- kanban-desktop / kanban-mobile classes in globals.css control responsive kanban layout (breakpoint: 700px)
 
 ## Coding Rules
 1. One file at a time
@@ -123,3 +125,4 @@ appliedAt, lastActionAt, followUpDue, notes, positioningNote
 | 2026-04-29 | Pitch generator debug | Complete |
 | 2026-05-02 | Feed URL paste, feedOnly flow, language filter | Complete |
 | 2026-05-03 | Reject vs Delete, source filter, 3 new feed sources | Complete |
+| 2026-05-03 | Pipeline UI — collapsible Top 5, responsive kanban, globals.css kanban classes | Complete |
