@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 const CAYLAH_KEYWORDS = [
+  // Senior / RevOps track
   'revenue operations', 'revops', 'gtm operations', 'sales operations',
   'business operations', 'process operations', 'systems operations',
   'operations manager', 'operations lead', 'business systems',
@@ -9,6 +10,15 @@ const CAYLAH_KEYWORDS = [
   'operational excellence', 'process improvement', 'operations specialist',
   'head of operations', 'director of operations', 'ops manager',
   'business analyst', 'process analyst', 'systems analyst',
+  // Entry / execution track
+  'chief of staff', 'founder associate', 'executive assistant',
+  'executive operations', 'executive coordinator',
+  'operations associate', 'operations coordinator',
+  'strategy associate', 'program coordinator',
+  'project coordinator', 'implementation manager',
+  'team operations', 'startup operations',
+  // Expanded
+  'ai trainer', 'data trainer', 'sales enablement', 'enablement',
 ]
 
 const KYLE_KEYWORDS = [
@@ -20,6 +30,7 @@ const KYLE_KEYWORDS = [
   'customer onboarding', 'client services', 'account management',
   'customer support manager', 'client manager', 'success manager',
   'relationship manager', 'client partner', 'customer relations',
+  'onboarding specialist', 'client trainer',
 ]
 
 function matchesUser(title: string, description: string, user: string): boolean {
@@ -33,7 +44,7 @@ const NON_ENGLISH = [
   'befristet', 'unbefristet', 'gehalt', 'kenntnisse', 'erfahrung', 'anforderungen',
   'nous recherchons', 'nous sommes', 'vous êtes', 'français', 'francais', 'cdi', 'cdd',
   'expérience', 'competences', 'compétences', 'poste', 'rejoindre',
-  'wij zoeken', 'dutch', 'nederlands', 'vacature',
+  'wij zoeken', 'nederlands', 'vacature',
   'estamos buscando', 'experiencia', 'requisitos', 'incorporar',
   'cerchiamo', 'italiano', 'esperienza',
 ]
@@ -143,18 +154,103 @@ async function fetchHimalayas(user: string) {
     const data = await res.json()
     return (data.jobs || [])
       .filter((job: any) => matchesUser(job.title, job.description || '', user))
+      .map((job: any) => {
+        const companySlug = job.company?.slug || ''
+        const jobSlug = job.slug || ''
+        const url = companySlug && jobSlug
+          ? `https://himalayas.app/companies/${companySlug}/jobs/${jobSlug}`
+          : jobSlug
+          ? `https://himalayas.app/jobs/${jobSlug}`
+          : job.url || 'https://himalayas.app/jobs'
+        return {
+          id: `himalayas-${jobSlug || job.id}`,
+          company: job.company?.name || 'Unknown',
+          role: job.title,
+          platform: 'Himalayas',
+          url,
+          salary: job.salary || null,
+          postedAt: job.createdAt || null,
+          source: 'himalayas',
+          description: job.description?.replace(/<[^>]*>/g, '').slice(0, 300) + '...',
+          isManual: false,
+        }
+      })
+  } catch { return [] }
+}
+
+async function fetchRemoteOK(user: string) {
+  try {
+    const tag = user === 'caylah' ? 'operations' : 'customer-success'
+    const res = await fetch(`https://remoteok.com/api?tag=${tag}`, {
+      headers: { 'User-Agent': 'NorthStarJobsApp/1.0' },
+      next: { revalidate: 3600 },
+    })
+    const data = await res.json()
+    return (data || [])
+      .filter((job: any) => job.position && matchesUser(job.position, job.description || '', user) && isEnglish(job.position, job.description || ''))
       .map((job: any) => ({
-        id: `himalayas-${job.slug}`,
-        company: job.company?.name || 'Unknown',
-        role: job.title,
-        platform: 'Himalayas',
-        url: `https://himalayas.app/jobs/${job.slug}`,
-        salary: job.salary || null,
-        postedAt: job.createdAt,
-        source: 'himalayas',
+        id: `remoteok-${job.id}`,
+        company: job.company || 'Unknown',
+        role: job.position,
+        platform: 'RemoteOK',
+        url: job.url || `https://remoteok.com/remote-jobs/${job.id}`,
+        salary: job.salary_min ? `$${Number(job.salary_min).toLocaleString()} – $${Number(job.salary_max).toLocaleString()}/yr` : null,
+        postedAt: job.date ? new Date(job.date).toISOString() : null,
+        source: 'remoteok',
         description: job.description?.replace(/<[^>]*>/g, '').slice(0, 300) + '...',
         isManual: false,
       }))
+  } catch { return [] }
+}
+
+async function fetchWorkingNomads(user: string) {
+  try {
+    const category = user === 'caylah' ? 'business' : 'sales'
+    const res = await fetch(`https://www.workingnomads.com/api/exposed_jobs/?category=${category}`, {
+      next: { revalidate: 3600 },
+    })
+    const data = await res.json()
+    return (data || [])
+      .filter((job: any) => matchesUser(job.title, job.description || '', user) && isEnglish(job.title, job.description || ''))
+      .map((job: any) => ({
+        id: `workingnomads-${job.id}`,
+        company: job.company_name || 'Unknown',
+        role: job.title,
+        platform: 'Working Nomads',
+        url: job.url,
+        salary: null,
+        postedAt: job.pub_date || null,
+        source: 'workingnomads',
+        description: job.description?.replace(/<[^>]*>/g, '').slice(0, 300) + '...',
+        isManual: false,
+      }))
+  } catch { return [] }
+}
+
+async function fetch4DayWeek(user: string) {
+  try {
+    const res = await fetch('https://4dayweek.io/feed.xml', { next: { revalidate: 3600 } })
+    const text = await res.text()
+    const items = text.match(/<item>([\s\S]*?)<\/item>/g) || []
+    return items.map(item => {
+      const title = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] || item.match(/<title>(.*?)<\/title>/)?.[1] || ''
+      const link = item.match(/<link>(.*?)<\/link>/)?.[1] || ''
+      const pubDate = item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || ''
+      const desc = item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/)?.[1] || ''
+      const company = title.split(' at ')?.[1] || ''
+      const role = title.split(' at ')?.[0] || title
+      return {
+        id: `4dayweek-${link}`,
+        company, role,
+        platform: '4 Day Week',
+        url: link,
+        salary: null,
+        postedAt: pubDate ? new Date(pubDate).toISOString() : null,
+        source: '4dayweek',
+        description: desc.replace(/<[^>]*>/g, '').slice(0, 300) + '...',
+        isManual: false,
+      }
+    }).filter(job => matchesUser(job.role, job.description || '', user) && isEnglish(job.role, job.description || ''))
   } catch { return [] }
 }
 
@@ -162,12 +258,15 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const user = searchParams.get('user') || 'caylah'
 
-  const [remotive, wwr, jobicy, arbeitnow, himalayas, dbManual] = await Promise.all([
+  const [remotive, wwr, jobicy, arbeitnow, himalayas, remoteok, workingnomads, fourday, dbManual] = await Promise.all([
     fetchRemotive(user),
     fetchWeworkremotely(user),
     fetchJobicy(user),
     fetchArbeitnow(user),
     fetchHimalayas(user),
+    fetchRemoteOK(user),
+    fetchWorkingNomads(user),
+    fetch4DayWeek(user),
     prisma.job.findMany({
       where: { user, isManual: true, feedOnly: true },
       orderBy: { createdAt: 'desc' },
@@ -188,7 +287,7 @@ export async function GET(request: Request) {
     isManual: true,
   }))
 
-  const combined = [...remotive, ...wwr, ...jobicy, ...arbeitnow, ...himalayas]
+  const combined = [...remotive, ...wwr, ...jobicy, ...arbeitnow, ...himalayas, ...remoteok, ...workingnomads, ...fourday]
 
   const seen = new Set()
   const unique = combined.filter(job => {

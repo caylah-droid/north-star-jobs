@@ -152,7 +152,7 @@ const sources = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'arbei
     weworkremotely: 'WWR', jobicy: 'Jobicy', arbeitnow: 'Arbeitnow',
     himalayas: 'Himalayas', remoteok: 'RemoteOK', workingnomads: 'Working Nomads', '4dayweek': '4 Day Week'
   }
-  const filteredJobs = sourceFilter === 'all' ? jobs : jobs.filter(j => j.source === sourceFilter)
+  const filteredJobs = sourceFilter === 'all' ? jobs : jobs.filter(j => (j.source || '').toLowerCase() === sourceFilter.toLowerCase())
 
   return (
     <div>
