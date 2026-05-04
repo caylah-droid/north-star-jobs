@@ -37,16 +37,12 @@ export default function Feed({ activeUser }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<{ company: string; role: string; description: string } | null>(null)
   const [salaryPrompt, setSalaryPrompt] = useState<{ job: FeedJob; value: string } | null>(null)
-  const [sourceFilter, setSourceFilter] = useState<string>('all')
 
   const loadFeed = async () => {
     setLoading(true)
     try {
       const res = await fetch(`/api/feed?user=${activeUser}&t=${Date.now()}`)
       const data = await res.json()
-      const srcList = data.map((j: any) => j.source)
-      const uniqueSources = srcList.filter((s: string, i: number) => srcList.indexOf(s) === i)
-      console.log('Feed sources:', uniqueSources)
       setJobs(data)
     } catch { setJobs([]) }
     setLoading(false)
@@ -156,16 +152,7 @@ export default function Feed({ activeUser }: Props) {
     return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60) <= 48
   }
 
-const sourceList = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'arbeitnow', 'himalayas', 'remoteok', 'workingnomads', '4dayweek']
-  const sourceLabels: Record<string, string> = {
-    all: 'All', manual: '✋ Manual', remotive: 'Remotive',
-    weworkremotely: 'WWR', jobicy: 'Jobicy', arbeitnow: 'Arbeitnow',
-    himalayas: 'Himalayas', remoteok: 'RemoteOK', workingnomads: 'Working Nomads', '4dayweek': '4 Day Week'
-  }
-  const filteredJobs = sourceFilter === 'all' 
-  ? jobs 
-  : jobs.filter(j => (j.source || '').toLowerCase() === sourceFilter.toLowerCase())
-  console.log('sourceFilter:', sourceFilter, '| filteredJobs:', filteredJobs.length)
+const filteredJobs = jobs
 
   return (
     <div>
@@ -319,24 +306,6 @@ const sourceList = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'ar
 
       {/* Stats Bar */}
 
-      {/* Source Filter */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-        {sourceList.map(s => (
-          <button
-            key={s}
-            onClick={() => setSourceFilter(s)}
-            style={{
-              padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-              cursor: 'pointer', border: 'none',
-              background: sourceFilter === s ? accent : '#1e293b',
-              color: sourceFilter === s ? 'white' : '#64748b',
-            }}
-          >
-            {sourceLabels[s]}
-          </button>
-        ))}
-      </div>
-
       {/* Feed */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60 }}>
@@ -380,8 +349,6 @@ const sourceList = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'ar
                   {isFresh(job.postedAt) && !job.isManual && (
                     <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: '#14532d', color: '#4ade80' }}>🔥 Fresh</span>
                   )}
-                  <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: '#1e293b', color: '#64748b' }}>{job.platform}</span>
-<span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: '#0f172a', color: '#334155', border: '1px solid #1e293b' }}>{job.source}</span>
                   <span style={{ fontSize: 12, color: '#475569', marginLeft: 'auto' }}>{timeAgo(job.postedAt)}</span>
                 </div>
 
