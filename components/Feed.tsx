@@ -41,8 +41,11 @@ export default function Feed({ activeUser }: Props) {
   const loadFeed = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/feed?user=${activeUser}`)
+      const res = await fetch(`/api/feed?user=${activeUser}&t=${Date.now()}`)
       const data = await res.json()
+      const sources = data.map((j: any) => j.source)
+      const uniqueSources = sources.filter((s: string, i: number) => sources.indexOf(s) === i)
+      console.log('Feed sources:', uniqueSources)
       setJobs(data)
     } catch { setJobs([]) }
     setLoading(false)
