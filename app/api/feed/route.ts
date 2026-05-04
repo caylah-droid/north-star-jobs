@@ -312,7 +312,7 @@ export async function GET(request: Request) {
   const seen = new Set()
   const unique = combined.filter(job => {
     if (!isEnglish(job.role, job.description || '')) return false
-    const key = `${job.company}-${job.role}`.toLowerCase()
+    const key = job.url || `${job.company}-${job.role}`.toLowerCase()
     if (seen.has(key)) return false
     seen.add(key)
     return true
