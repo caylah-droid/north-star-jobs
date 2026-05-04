@@ -36,6 +36,7 @@ export default function Feed({ activeUser }: Props) {
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<{ company: string; role: string; description: string } | null>(null)
+  const [salaryPrompt, setSalaryPrompt] = useState<{ job: FeedJob; value: string } | null>(null)
   const [sourceFilter, setSourceFilter] = useState<string>('all')
 
   const loadFeed = async () => {
@@ -101,8 +102,14 @@ export default function Feed({ activeUser }: Props) {
     await loadFeed()
   }
 
-  const addToPipeline = async (job: FeedJob) => {
+  const addToPipeline = async (job: FeedJob, salaryOverride?: string) => {
+    if (!job.salary && !salaryOverride && !job.isManual) {
+      setSalaryPrompt({ job, value: '' })
+      return
+    }
     setAdding(job.id)
+    const salaryVal = salaryOverride || job.salary
+    const salaryMin = salaryVal && salaryVal !== 'skip' ? parseInt(salaryVal.replace(/[^0-9]/g, '')) || null : null
     try {
       if (job.isManual && job.dbId) {
         await fetch(`/api/jobs/${job.dbId}`, {
@@ -120,8 +127,8 @@ export default function Feed({ activeUser }: Props) {
             platform: job.platform,
             url: job.url,
             postedAt: job.postedAt,
-            salaryMin: null,
-            salaryMax: null,
+            salaryMin: salaryMin,
+            salaryMax: salaryMin,
             user: activeUser,
             track: null,
             isManual: false,
@@ -433,6 +440,49 @@ const sourceList = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'ar
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {salaryPrompt && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }}>
+          <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'white', marginBottom: 4 }}>
+              {salaryPrompt.job.company} — {salaryPrompt.job.role}
+            </div>
+            <div style={{ fontSize: 12, color: '#64748b', marginBottom: 16 }}>
+              No salary listed. Enter monthly USD if known, or skip.
+            </div>
+            <input
+              type="text"
+              placeholder="e.g. 5400 (monthly USD)"
+              value={salaryPrompt.value}
+              onChange={e => setSalaryPrompt(p => p ? { ...p, value: e.target.value } : p)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  const job = salaryPrompt.job
+                  const val = salaryPrompt.value
+                  setSalaryPrompt(null)
+                  addToPipeline(job, val || 'skip')
+                }
+              }}
+              style={{ width: '100%', padding: '10px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: 'white', fontSize: 14, outline: 'none', marginBottom: 12, boxSizing: 'border-box' }}
+              autoFocus
+            />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => { const job = salaryPrompt.job; setSalaryPrompt(null); addToPipeline(job, 'skip') }}
+                style={{ flex: 1, padding: '10px', background: '#1e293b', color: '#64748b', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}
+              >
+                Skip
+              </button>
+              <button
+                onClick={() => { const job = salaryPrompt.job; const val = salaryPrompt.value; setSalaryPrompt(null); addToPipeline(job, val || 'skip') }}
+                style={{ flex: 2, padding: '10px', background: accent, color: 'white', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+              >
+                + Add to Pipeline
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
