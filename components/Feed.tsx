@@ -185,7 +185,7 @@ const sources = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'arbei
             { label: 'Wellfound', url: 'https://wellfound.com/jobs' },
             { label: 'LinkedIn', url: 'https://linkedin.com/jobs/' },
             { label: 'Crossover', url: 'https://crossover.com/jobs' },
-            { label: 'BuiltIn', url: 'https://builtin.com/jobs' },
+            { label: 'BuiltIn', url: 'https://builtin.com/jobs/remote?city=&state=&country=USA&allLocations=true' },
             { label: 'Scale.jobs', url: 'https://scale.jobs' },
             { label: 'NoDesk', url: 'https://nodesk.co/remote-jobs/' },
             { label: 'Somewhere', url: 'https://somewhere.com/jobs' },
