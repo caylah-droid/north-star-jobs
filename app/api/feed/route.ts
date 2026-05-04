@@ -148,7 +148,7 @@ async function fetchJobicy(user: string) {
 
 async function fetchArbeitnow(user: string) {
   try {
-    const res = await fetch('https://www.arbeitnow.com/api/job-board-api', { next: { revalidate: 3600 } })
+    const res = await fetch('https://www.arbeitnow.com/api/job-board-api', { cache: 'no-store' })
     const data = await res.json()
     return (data.data || [])
       .filter((job: any) => matchesUser(job.title, job.description || '', user) && isEnglish(job.title, job.description || ''))
