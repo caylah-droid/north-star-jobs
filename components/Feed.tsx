@@ -251,13 +251,40 @@ const sources = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'arbei
         )}
       </div>
 
-      {/* Stats Bar */}
-      <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: '10px 16px', display: 'flex', gap: 24, marginBottom: 20, fontSize: 13, flexWrap: 'wrap' }}>
-        <span style={{ color: '#94a3b8' }}><span style={{ color: 'white', fontWeight: 600 }}>{jobs.length}</span> roles found</span>
-        <span style={{ color: '#94a3b8' }}><span style={{ color: '#4ade80', fontWeight: 600 }}>{jobs.filter(j => isFresh(j.postedAt)).length}</span> fresh (&lt;48h)</span>
-        <span style={{ color: '#94a3b8' }}><span style={{ color: '#a78bfa', fontWeight: 600 }}>{jobs.filter(j => j.isManual).length}</span> manual</span>
-        <span style={{ color: '#94a3b8' }}>Sources: <span style={{ color: 'white' }}>Remotive · WWR · Jobicy · Arbeitnow · Himalayas · RemoteOK · Working Nomads · 4 Day Week</span></span>
+      {/* Quick Links */}
+      <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: '10px 16px', marginBottom: 12 }}>
+        <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>
+          🌐 Browse manually
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {[
+            { label: 'Wellfound', url: 'https://wellfound.com/jobs' },
+            { label: 'Deel Jobs', url: 'https://www.deel.com/jobs' },
+            { label: 'Crossover', url: 'https://www.crossover.com/jobs' },
+            { label: 'Scale.jobs', url: 'https://scale.jobs' },
+            { label: 'NoDesk', url: 'https://nodesk.co/remote-jobs/' },
+            { label: 'WWR', url: 'https://weworkremotely.com' },
+            { label: 'Himalayas', url: 'https://himalayas.app/jobs' },
+            { label: 'Somewhere', url: 'https://somewhere.com/jobs' },
+            { label: 'RemoteOK', url: 'https://remoteok.com' },
+            { label: 'Remotive', url: 'https://remotive.com' },
+            { label: 'Jobicy', url: 'https://jobicy.com' },
+          ].map(link => (
+            <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+              <span style={{
+                padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                background: '#1e293b', color: '#94a3b8', cursor: 'pointer',
+                border: '1px solid #334155', whiteSpace: 'nowrap',
+                display: 'inline-block',
+              }}>
+                {link.label} ↗
+              </span>
+            </a>
+          ))}
+        </div>
       </div>
+
+      {/* Stats Bar */}
 
       {/* Source Filter */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
