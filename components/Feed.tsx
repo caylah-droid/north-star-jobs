@@ -156,6 +156,7 @@ const sourceList = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'ar
     himalayas: 'Himalayas', remoteok: 'RemoteOK', workingnomads: 'Working Nomads', '4dayweek': '4 Day Week'
   }
   const filteredJobs = sourceFilter === 'all' ? jobs : jobs.filter(j => (j.source || '').toLowerCase() === sourceFilter.toLowerCase())
+  console.log('sourceFilter:', sourceFilter, '| filteredJobs:', filteredJobs.length)
 
   return (
     <div>
