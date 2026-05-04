@@ -55,7 +55,8 @@ appliedAt, lastActionAt, followUpDue, notes, positioningNote
 - ✅ Phase 11: Reject vs Delete — 👎 Reject moves to rejected stage, 🗑️ permanently deletes
 - ✅ Phase 12: Pipeline UI — collapsible Top 5, responsive kanban (list view on narrow screens)
 - ✅ Phase 13: Today page redesign — contract-first layout, circle checkboxes, progress bar, identity-anchored quotes
-- ✅ Phase 14: Metrics redesign — scoreboard-first, pipeline bar, strategy health rows, flags
+- ✅ Phase 14: Metrics are live on real data
+- ✅ Phase 15: Metrics redesign — scoreboard-first, pipeline bar, strategy health rows, flags
 
 ## Tab Order (app/page.tsx)
 📊 Metrics → ⚡ Today → 🔭 Feed → 🎯 Pipeline → 🏢 Companies

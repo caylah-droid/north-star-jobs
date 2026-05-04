@@ -164,7 +164,7 @@ async function fetchHimalayas(user: string) {
           : job.url || 'https://himalayas.app/jobs'
         return {
           id: `himalayas-${jobSlug || job.id}`,
-          company: job.company?.name || 'Unknown',
+          company: job.company?.name || job.companyName || job.organization || 'Unknown',
           role: job.title,
           platform: 'Himalayas',
           url,
