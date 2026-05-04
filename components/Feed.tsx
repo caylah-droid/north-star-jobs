@@ -183,7 +183,7 @@ const sources = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'arbei
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
           {[
             { label: 'Wellfound', url: 'https://wellfound.com/jobs' },
-            { label: 'Deel Jobs', url: 'https://www.deel.com/careers/open-roles/' },
+            { label: 'LinkedIn', url: 'https://linkedin.com/jobs/' },
             { label: 'Crossover', url: 'https://www.crossover.com/jobs' },
             { label: 'Scale.jobs', url: 'https://scale.jobs' },
             { label: 'NoDesk', url: 'https://nodesk.co/remote-jobs/' },
