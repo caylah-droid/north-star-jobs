@@ -43,8 +43,8 @@ export default function Feed({ activeUser }: Props) {
     try {
       const res = await fetch(`/api/feed?user=${activeUser}&t=${Date.now()}`)
       const data = await res.json()
-      const sources = data.map((j: any) => j.source)
-      const uniqueSources = sources.filter((s: string, i: number) => sources.indexOf(s) === i)
+      const srcList = data.map((j: any) => j.source)
+      const uniqueSources = srcList.filter((s: string, i: number) => srcList.indexOf(s) === i)
       console.log('Feed sources:', uniqueSources)
       setJobs(data)
     } catch { setJobs([]) }
@@ -149,7 +149,7 @@ export default function Feed({ activeUser }: Props) {
     return (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60) <= 48
   }
 
-const sources = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'arbeitnow', 'himalayas', 'remoteok', 'workingnomads', '4dayweek']
+const sourceList = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'arbeitnow', 'himalayas', 'remoteok', 'workingnomads', '4dayweek']
   const sourceLabels: Record<string, string> = {
     all: 'All', manual: '✋ Manual', remotive: 'Remotive',
     weworkremotely: 'WWR', jobicy: 'Jobicy', arbeitnow: 'Arbeitnow',
@@ -311,7 +311,7 @@ const sources = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'arbei
 
       {/* Source Filter */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-        {sources.map(s => (
+        {sourceList.map(s => (
           <button
             key={s}
             onClick={() => setSourceFilter(s)}

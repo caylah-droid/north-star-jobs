@@ -203,7 +203,7 @@ async function fetchRemoteOK(user: string) {
     const tag = user === 'caylah' ? 'operations' : 'customer-success'
     const res = await fetch(`https://remoteok.com/api?tag=${tag}`, {
       headers: { 'User-Agent': 'NorthStarJobsApp/1.0' },
-      next: { revalidate: 3600 },
+      cache: 'no-store',
     })
     const data = await res.json()
     return (data || [])
@@ -227,7 +227,7 @@ async function fetchWorkingNomads(user: string) {
   try {
     const category = user === 'caylah' ? 'business' : 'sales'
     const res = await fetch(`https://www.workingnomads.com/api/exposed_jobs/?category=${category}`, {
-      next: { revalidate: 3600 },
+      cache: 'no-store',
     })
     const data = await res.json()
     return (data || [])
