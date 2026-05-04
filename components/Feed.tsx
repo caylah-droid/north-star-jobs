@@ -183,11 +183,14 @@ const sources = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'arbei
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
           {[
             { label: 'Wellfound', url: 'https://wellfound.com/jobs' },
-            { label: 'Crossover', url: 'https://www.crossover.com/jobs' },
-            { label: 'Somewhere', url: 'https://somewhere.com/jobs' },
-            { label: 'NoDesk', url: 'https://nodesk.co/remote-jobs/' },
-            { label: 'Scale.jobs', url: 'https://scale.jobs' },
             { label: 'Deel Jobs', url: 'https://www.deel.com/jobs' },
+            { label: 'Crossover', url: 'https://www.crossover.com/jobs' },
+            { label: 'Scale.jobs', url: 'https://scale.jobs' },
+            { label: 'NoDesk', url: 'https://nodesk.co/remote-jobs/' },
+            { label: 'Somewhere', url: 'https://somewhere.com/jobs' },
+            
+            
+            
           ].map(link => (
             <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
               <span style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#14532d', color: '#4ade80', cursor: 'pointer', border: '1px solid #166534', whiteSpace: 'nowrap', display: 'inline-block' }}>
