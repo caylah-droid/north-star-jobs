@@ -22,15 +22,35 @@ const CAYLAH_KEYWORDS = [
 ]
 
 const KYLE_KEYWORDS = [
+  // Core CSM / Account Management
   'customer success', 'client success', 'account manager',
-  'account executive', 'client relations', 'customer experience',
+  'account executive', 'customer experience', 'success manager',
+  'client manager', 'account management', 'client partner',
+
+  // LegalTech / Legal ops
   'legal operations', 'legaltech', 'legal tech', 'law firm',
-  'client implementation', 'onboarding manager', 'partnership manager',
-  'marketing operations', 'agency operations', 'client onboarding',
-  'customer onboarding', 'client services', 'account management',
-  'customer support manager', 'client manager', 'success manager',
-  'relationship manager', 'client partner', 'customer relations',
-  'onboarding specialist', 'client trainer',
+  'legal coordinator', 'legal assistant', 'legal administrator',
+  'paralegal operations', 'legal project manager',
+
+  // Onboarding / Implementation
+  'onboarding manager', 'onboarding specialist', 'client onboarding',
+  'customer onboarding', 'client implementation', 'implementation specialist',
+  'client trainer', 'training coordinator', 'product trainer',
+
+  // Relationship / BD
+  'relationship manager', 'client relations', 'customer relations',
+  'client services', 'business development representative',
+  'partnership manager', 'partnerships coordinator',
+  'sales development', 'community manager',
+
+  // Support / Ops (entry friendly)
+  'customer support manager', 'support operations', 'customer operations',
+  'helpdesk manager', 'service delivery', 'client coordinator',
+  'operations coordinator', 'project coordinator',
+
+  // Marketing ops (secondary)
+  'marketing operations', 'agency operations', 'campaign coordinator',
+  'marketing coordinator', 'crm manager', 'hubspot',
 ]
 
 function matchesUser(title: string, description: string, user: string): boolean {

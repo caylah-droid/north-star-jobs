@@ -5,7 +5,7 @@ import { useState } from 'react'
 type Props = { activeUser: 'caylah' | 'kyle' }
 
 const caylahActions = [
-  { id: 1, type: 'Apply', emoji: '📨', title: 'Apply to 2 targeted roles', description: 'Direct career page only. No Easy Apply. RevOps or GTM Ops at Series A–C SaaS.', priority: 'high' },
+  { id: 1, type: 'Apply', emoji: '📨', title: 'Apply to 5 targeted roles', description: 'Direct career page only. No Easy Apply. RevOps or GTM Ops at Series A–C SaaS. Volume + quality.', priority: 'high' },
   { id: 2, type: 'Outreach', emoji: '🤝', title: 'Send 1 warm outreach', description: 'Find the hiring manager on LinkedIn. Connect before you apply — 5× more effective.', priority: 'high' },
   { id: 3, type: 'Follow Up', emoji: '🔁', title: 'Follow up on 2 stale applications', description: 'No response after 5 days? Send a short, confident nudge.', priority: 'medium' },
   { id: 4, type: 'Proof of Work', emoji: '⚒️', title: 'Create 1 proof-of-work asset', description: 'Loom audit, process doc, or LinkedIn post as The Operator.', priority: 'medium' },
@@ -13,19 +13,19 @@ const caylahActions = [
 
 const kyleActions = [
   { id: 1, type: 'Research', emoji: '🔍', title: 'Research 1 target company', description: 'LegalTech or Marketing Ops. Find the CS team and hiring manager name.', priority: 'high' },
-  { id: 2, type: 'Apply', emoji: '📨', title: 'Apply to 2 targeted roles', description: 'CSM or Account Manager at LegalTech or Marketing platforms. Direct page only.', priority: 'high' },
+  { id: 2, type: 'Apply', emoji: '📨', title: 'Apply to 5 targeted roles', description: 'CSM or Account Manager at LegalTech or Marketing platforms. Direct page only.', priority: 'high' },
   { id: 3, type: 'Outreach', emoji: '🤝', title: 'Send 3 outreach messages', description: 'Personalised LinkedIn notes referencing legal or marketing ops context.', priority: 'high' },
   { id: 4, type: 'Follow Up', emoji: '🔁', title: 'Follow up on 3 conversations', description: 'Any outreach or application older than 4 days with no reply.', priority: 'medium' },
 ]
 
 const caylahTargets = [
-  { label: 'Applications', value: 2, emoji: '📨' },
+  { label: 'Applications', value: 5, emoji: '📨' },
   { label: 'Outreach', value: 1, emoji: '🤝' },
   { label: 'Proof of work', value: 1, emoji: '⚒️' },
 ]
 
 const kyleTargets = [
-  { label: 'Applications', value: 2, emoji: '📨' },
+  { label: 'Applications', value: 5, emoji: '📨' },
   { label: 'Outreach', value: 3, emoji: '🤝' },
   { label: 'Follow ups', value: 3, emoji: '🔁' },
 ]
@@ -74,17 +74,17 @@ export default function DailyActions({ activeUser }: Props) {
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
 
-      {/* CONTRACT BLOCK — compact, everything visible */}
+      {/* CONTRACT BLOCK */}
       <div style={{
         background: '#0f172a',
         border: `1px solid ${allDone ? '#166534' : '#1e293b'}`,
         borderTop: `3px solid ${allDone ? '#22c55e' : accent}`,
         borderRadius: 12,
-        padding: '14px 20px',
+        padding: '14px 16px',
         marginBottom: 16,
       }}>
-        {/* Top row: label + date + progress % */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        {/* Header row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             Today's contract
           </span>
@@ -93,32 +93,43 @@ export default function DailyActions({ activeUser }: Props) {
           </span>
         </div>
 
-        {/* Targets row — compact numbers */}
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${targets.length}, 1fr)`, marginBottom: 14 }}>
+        {/* Targets — flex wrap so mobile wraps gracefully */}
+        <div style={{ display: 'flex', gap: 0, marginBottom: 14 }}>
           {targets.map((t, i) => (
             <div
               key={t.label}
               style={{
+                flex: 1,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 10,
-                paddingRight: i < targets.length - 1 ? 16 : 0,
-                marginRight: i < targets.length - 1 ? 16 : 0,
+                gap: 8,
+                paddingRight: i < targets.length - 1 ? 12 : 0,
+                marginRight: i < targets.length - 1 ? 12 : 0,
                 borderRight: i < targets.length - 1 ? '1px solid #1e293b' : 'none',
+                minWidth: 0,
               }}
             >
               <div style={{
-                fontSize: 32,
+                fontSize: 28,
                 fontWeight: 800,
                 color: allDone ? '#22c55e' : accentLight,
                 lineHeight: 1,
                 letterSpacing: '-0.02em',
-                minWidth: 28,
+                flexShrink: 0,
               }}>
                 {t.value}
               </div>
-              <div>
-                <div style={{ fontSize: 13, color: allDone ? '#4ade80' : 'white', fontWeight: 600 }}>{t.label}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{
+                  fontSize: 12,
+                  color: allDone ? '#4ade80' : 'white',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}>
+                  {t.label}
+                </div>
                 <div style={{ fontSize: 11, color: '#334155', marginTop: 1 }}>{t.emoji}</div>
               </div>
             </div>
@@ -126,7 +137,7 @@ export default function DailyActions({ activeUser }: Props) {
         </div>
 
         {/* Progress bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ flex: 1, background: '#1e293b', borderRadius: 999, height: 5, overflow: 'hidden' }}>
             <div style={{
               height: '100%',
@@ -136,7 +147,7 @@ export default function DailyActions({ activeUser }: Props) {
               transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
             }} />
           </div>
-          <span style={{ fontSize: 11, fontWeight: 700, color: allDone ? '#22c55e' : '#475569', minWidth: 28, textAlign: 'right' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: allDone ? '#22c55e' : '#475569', minWidth: 30, textAlign: 'right' }}>
             {progressPct}%
           </span>
         </div>
@@ -148,16 +159,16 @@ export default function DailyActions({ activeUser }: Props) {
           background: '#0f1f14',
           border: '1px solid #166534',
           borderRadius: 12,
-          padding: '16px 20px',
+          padding: '14px 16px',
           marginBottom: 16,
           display: 'flex',
           alignItems: 'center',
-          gap: 16,
+          gap: 14,
         }}>
-          <span style={{ fontSize: 28 }}>🏆</span>
+          <span style={{ fontSize: 26, flexShrink: 0 }}>🏆</span>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#4ade80' }}>Mission accomplished.</div>
-            <div style={{ fontSize: 12, color: '#4ade80', opacity: 0.6, fontStyle: 'italic', marginTop: 2 }}>"{phrase}"</div>
+            <div style={{ fontSize: 11, color: '#4ade80', opacity: 0.6, fontStyle: 'italic', marginTop: 2 }}>"{phrase}"</div>
           </div>
         </div>
       )}
@@ -183,7 +194,6 @@ export default function DailyActions({ activeUser }: Props) {
               transition: 'all 0.25s ease',
             }}
           >
-            {/* Circle checkbox */}
             <button
               onClick={() => toggle(action.id)}
               style={{
@@ -207,7 +217,7 @@ export default function DailyActions({ activeUser }: Props) {
             </button>
 
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
                 <span style={{
                   fontSize: 10,
                   fontWeight: 700,
@@ -217,11 +227,12 @@ export default function DailyActions({ activeUser }: Props) {
                   color: isDone ? '#4ade80' : accentLight,
                   letterSpacing: '0.05em',
                   textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
                 }}>
                   {action.type}
                 </span>
                 {!isDone && isHigh && (
-                  <span style={{ fontSize: 10, color: '#ef4444', fontWeight: 600 }}>● Priority</span>
+                  <span style={{ fontSize: 10, color: '#ef4444', fontWeight: 600, whiteSpace: 'nowrap' }}>● Priority</span>
                 )}
               </div>
 
@@ -249,7 +260,7 @@ export default function DailyActions({ activeUser }: Props) {
       {!allDone && (
         <div style={{
           marginTop: 16,
-          padding: '12px 16px',
+          padding: '12px 14px',
           background: '#0d0d14',
           border: '1px solid #1e293b',
           borderRadius: 10,
