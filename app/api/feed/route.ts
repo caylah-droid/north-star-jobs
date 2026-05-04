@@ -76,7 +76,7 @@ function isEnglish(title: string, description: string): boolean {
 
 async function fetchRemotive(user: string) {
   try {
-    const res = await fetch('https://remotive.com/api/remote-jobs?limit=100', { next: { revalidate: 3600 } })
+    const res = await fetch('https://remotive.com/api/remote-jobs?limit=100', { cache: 'no-store' })
     const data = await res.json()
     return data.jobs
       .filter((job: any) => matchesUser(job.title, job.description || '', user))
@@ -100,7 +100,7 @@ async function fetchWeworkremotely(user: string) {
     const category = user === 'caylah'
       ? 'https://weworkremotely.com/categories/remote-management-and-finance-jobs.rss'
       : 'https://weworkremotely.com/categories/remote-customer-support-jobs.rss'
-    const res = await fetch(category, { next: { revalidate: 3600 } })
+    const res = await fetch(category, { cache: 'no-store' })
     const text = await res.text()
     const items = text.match(/<item>([\s\S]*?)<\/item>/g) || []
     return items.map(item => {
@@ -127,7 +127,7 @@ async function fetchWeworkremotely(user: string) {
 async function fetchJobicy(user: string) {
   try {
     const tag = user === 'caylah' ? 'operations' : 'customer-success'
-    const res = await fetch(`https://jobicy.com/api/v2/remote-jobs?tag=${tag}&count=50`, { next: { revalidate: 3600 } })
+    const res = await fetch(`https://jobicy.com/api/v2/remote-jobs?tag=${tag}&count=50`, { cache: 'no-store' })
     const data = await res.json()
     return (data.jobs || [])
       .filter((job: any) => matchesUser(job.jobTitle, job.jobDescription || '', user))
@@ -170,7 +170,7 @@ async function fetchArbeitnow(user: string) {
 async function fetchHimalayas(user: string) {
   try {
     const keyword = user === 'caylah' ? 'operations' : 'customer-success'
-    const res = await fetch(`https://himalayas.app/jobs/api?q=${keyword}&limit=50`, { next: { revalidate: 3600 } })
+    const res = await fetch(`https://himalayas.app/jobs/api?q=${keyword}&limit=50`, { cache: 'no-store' })
     const data = await res.json()
     return (data.jobs || [])
       .filter((job: any) => matchesUser(job.title, job.description || '', user))
@@ -249,7 +249,7 @@ async function fetchWorkingNomads(user: string) {
 
 async function fetch4DayWeek(user: string) {
   try {
-    const res = await fetch('https://4dayweek.io/feed.xml', { next: { revalidate: 3600 } })
+    const res = await fetch('https://4dayweek.io/feed.xml', { cache: 'no-store' })
     const text = await res.text()
     const items = text.match(/<item>([\s\S]*?)<\/item>/g) || []
     return items.map(item => {
