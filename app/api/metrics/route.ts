@@ -6,44 +6,56 @@ export async function GET(request: Request) {
   const user = searchParams.get('user') || 'caylah'
 
   const now = new Date()
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+  // Time windows
+  const startOfToday = new Date(now)
+  startOfToday.setHours(0, 0, 0, 0)
+
+  const startOfWeek = new Date(now)
+  startOfWeek.setDate(now.getDate() - now.getDay()) // Sunday
+  startOfWeek.setHours(0, 0, 0, 0)
+
   const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000)
   const fourDaysAgo = new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000)
 
-  // All jobs for this user
   const allJobs = await prisma.job.findMany({ where: { user } })
 
-  // Applications this week
-  const appliedThisWeek = allJobs.filter(j =>
-    j.appliedAt && new Date(j.appliedAt) >= weekAgo
+  // Momentum counts
+  const appliedToday = allJobs.filter(j =>
+    j.appliedAt && new Date(j.appliedAt) >= startOfToday
   ).length
 
-  // Total applied ever (for rate calculations)
-  const totalApplied = allJobs.filter(j => j.stage !== 'prospect').length
+  const appliedThisWeek = allJobs.filter(j =>
+    j.appliedAt && new Date(j.appliedAt) >= startOfWeek
+  ).length
 
-  // Interviews
+  const totalApplied = allJobs.filter(j =>
+    j.stage !== 'prospect'
+  ).length
+
+  // Active pipeline = prospect + applied + interview
+  const activePipeline = allJobs.filter(j =>
+    ['prospect', 'applied', 'interview'].includes(j.stage)
+  ).length
+
+  // Rates (only meaningful with volume)
   const totalInterviews = allJobs.filter(j =>
     j.stage === 'interview' || j.stage === 'offer'
   ).length
 
-  // Offers
   const totalOffers = allJobs.filter(j => j.stage === 'offer').length
-
-  // Rejected
   const totalRejected = allJobs.filter(j => j.stage === 'rejected').length
-
-  // Response = any movement past applied (interview + offer + rejected)
   const totalResponses = totalInterviews + totalOffers + totalRejected
+
   const responseRate = totalApplied > 0
     ? Math.round((totalResponses / totalApplied) * 100)
     : 0
 
-  // Interview rate = interviews out of applied
   const interviewRate = totalApplied > 0
     ? Math.round((totalInterviews / totalApplied) * 100)
     : 0
 
-  // Stale jobs that need follow-up
+  // Stale follow-ups
   const followUpThreshold = user === 'caylah' ? fiveDaysAgo : fourDaysAgo
   const staleJobs = allJobs.filter(j =>
     j.stage === 'applied' &&
@@ -51,7 +63,7 @@ export async function GET(request: Request) {
     new Date(j.appliedAt) <= followUpThreshold
   ).length
 
-  // Days active (since first application)
+  // Days active since first application
   const firstApplication = allJobs
     .filter(j => j.appliedAt)
     .sort((a, b) => new Date(a.appliedAt!).getTime() - new Date(b.appliedAt!).getTime())[0]
@@ -72,18 +84,20 @@ export async function GET(request: Request) {
   // Strategy flags
   const flags: string[] = []
   if (totalApplied >= 10 && responseRate < 15) {
-    flags.push('Response rate below 15% — strategy needs review. Try more direct outreach before applying.')
+    flags.push('Response rate below 15% — try more direct outreach before applying.')
   }
   if (staleJobs > 0) {
     flags.push(`${staleJobs} application${staleJobs > 1 ? 's' : ''} need follow-up (${user === 'caylah' ? '5' : '4'}+ days old).`)
   }
   if (pipeline.prospect > 10) {
-    flags.push(`${pipeline.prospect} prospects sitting idle — prioritise moving top ones to applied.`)
+    flags.push(`${pipeline.prospect} prospects sitting idle — move your top ones to applied.`)
   }
 
   return NextResponse.json({
+    appliedToday,
     appliedThisWeek,
     totalApplied,
+    activePipeline,
     responseRate,
     interviewRate,
     totalOffers,

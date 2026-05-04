@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 
 type MetricsData = {
+  appliedToday: number
   appliedThisWeek: number
   totalApplied: number
+  activePipeline: number
   responseRate: number
   interviewRate: number
   totalOffers: number
@@ -58,7 +60,10 @@ export default function Metrics({ activeUser }: Props) {
           Pipeline Metrics
         </div>
         {[1, 2, 3].map(i => (
-          <div key={i} style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, padding: 20, marginBottom: 10, height: 60 }} />
+          <div key={i} style={{
+            background: '#0f172a', border: '1px solid #1e293b',
+            borderRadius: 12, padding: 20, marginBottom: 10, height: 60
+          }} />
         ))}
       </div>
     )
@@ -82,42 +87,38 @@ export default function Metrics({ activeUser }: Props) {
 
   const total = Object.values(data.pipeline).reduce((a, b) => a + b, 0)
 
-  // The 4 numbers that matter — shown as scoreboard
+  // Momentum scoreboard — 4 distinct time horizons
   const scoreItems = [
     {
-      value: data.appliedThisWeek === 0 ? '0' : String(data.appliedThisWeek),
+      value: String(data.appliedToday),
+      label: 'Today',
+      sub: 'applications sent',
+      color: data.appliedToday > 0 ? accentLight : '#334155',
+    },
+    {
+      value: String(data.appliedThisWeek),
       label: 'This week',
-      sub: `${data.totalApplied} total`,
-      emoji: '📨',
-      color: accentLight,
+      sub: 'since Sunday',
+      color: data.appliedThisWeek > 0 ? accentLight : '#334155',
     },
     {
-      value: data.totalApplied === 0 ? '—' : `${data.responseRate}%`,
-      label: 'Response rate',
-      sub: 'target >15%',
-      emoji: '📬',
-      color: data.totalApplied === 0 ? '#334155' : responseColor(data.responseRate),
+      value: String(data.totalApplied),
+      label: 'Total',
+      sub: data.daysActive !== null ? `over ${data.daysActive} day${data.daysActive !== 1 ? 's' : ''}` : 'all time',
+      color: data.totalApplied > 0 ? accentLight : '#334155',
     },
     {
-      value: data.totalApplied === 0 ? '—' : `${data.interviewRate}%`,
-      label: 'Interview rate',
-      sub: 'target >5%',
-      emoji: '🎙️',
-      color: data.totalApplied === 0 ? '#334155' : interviewColor(data.interviewRate),
-    },
-    {
-      value: data.totalOffers === 0 ? '0' : String(data.totalOffers),
-      label: 'Active offers',
-      sub: data.totalOffers > 0 ? '🔥 Close these' : 'keep pushing',
-      emoji: '🎉',
-      color: data.totalOffers > 0 ? '#4ade80' : '#334155',
+      value: String(data.activePipeline),
+      label: 'Active',
+      sub: 'in live pipeline',
+      color: data.activePipeline > 0 ? '#4ade80' : '#334155',
     },
   ]
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
 
-      {/* SCOREBOARD — 4 numbers, compact, all visible */}
+      {/* MOMENTUM SCOREBOARD */}
       <div style={{
         background: '#0f172a',
         border: '1px solid #1e293b',
@@ -126,8 +127,11 @@ export default function Metrics({ activeUser }: Props) {
         padding: '14px 20px',
         marginBottom: 12,
       }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
-          Performance snapshot · {data.daysActive !== null ? `Day ${data.daysActive}` : 'Not started'}
+        <div style={{
+          fontSize: 10, fontWeight: 700, color: '#475569',
+          letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14,
+        }}>
+          Momentum · {data.daysActive !== null ? `Day ${data.daysActive} of search` : 'Search not started'}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0 }}>
@@ -140,25 +144,26 @@ export default function Metrics({ activeUser }: Props) {
                 borderRight: i < scoreItems.length - 1 ? '1px solid #1e293b' : 'none',
               }}
             >
-              <div style={{ fontSize: 11, color: '#334155', marginBottom: 4 }}>{item.emoji}</div>
               <div style={{
-                fontSize: 26,
+                fontSize: 28,
                 fontWeight: 800,
                 color: item.color,
                 lineHeight: 1,
                 letterSpacing: '-0.02em',
-                marginBottom: 4,
+                marginBottom: 6,
               }}>
                 {item.value}
               </div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8' }}>{item.label}</div>
-              <div style={{ fontSize: 10, color: '#334155', marginTop: 2 }}>{item.sub}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 2 }}>
+                {item.label}
+              </div>
+              <div style={{ fontSize: 10, color: '#334155' }}>{item.sub}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* PIPELINE BREAKDOWN — compact visual bar */}
+      {/* PIPELINE BREAKDOWN */}
       <div style={{
         background: '#0f172a',
         border: '1px solid #1e293b',
@@ -166,16 +171,24 @@ export default function Metrics({ activeUser }: Props) {
         padding: '14px 20px',
         marginBottom: 12,
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between',
+          alignItems: 'center', marginBottom: 12,
+        }}>
+          <span style={{
+            fontSize: 10, fontWeight: 700, color: '#475569',
+            letterSpacing: '0.1em', textTransform: 'uppercase',
+          }}>
             Pipeline
           </span>
           <span style={{ fontSize: 11, color: '#334155' }}>{total} total</span>
         </div>
 
-        {/* Visual bar */}
         {total > 0 ? (
-          <div style={{ display: 'flex', height: 6, borderRadius: 4, overflow: 'hidden', gap: 2, marginBottom: 12 }}>
+          <div style={{
+            display: 'flex', height: 6, borderRadius: 4,
+            overflow: 'hidden', gap: 2, marginBottom: 12,
+          }}>
             {pipelineStages.filter(s => s.count > 0).map(s => (
               <div key={s.label} style={{ flex: s.count, background: s.color, borderRadius: 4 }} />
             ))}
@@ -184,7 +197,6 @@ export default function Metrics({ activeUser }: Props) {
           <div style={{ height: 6, background: '#1e293b', borderRadius: 4, marginBottom: 12 }} />
         )}
 
-        {/* Stage pills */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {pipelineStages.map(s => (
             <div key={s.label} style={{
@@ -194,13 +206,18 @@ export default function Metrics({ activeUser }: Props) {
             }}>
               <div style={{ width: 7, height: 7, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
               <span style={{ fontSize: 11, color: '#64748b' }}>{s.label}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: s.count > 0 ? 'white' : '#334155' }}>{s.count}</span>
+              <span style={{
+                fontSize: 12, fontWeight: 700,
+                color: s.count > 0 ? 'white' : '#334155',
+              }}>
+                {s.count}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* STRATEGY HEALTH — compact rows */}
+      {/* STRATEGY HEALTH */}
       <div style={{
         background: '#0f172a',
         border: '1px solid #1e293b',
@@ -208,24 +225,40 @@ export default function Metrics({ activeUser }: Props) {
         padding: '14px 20px',
         marginBottom: 12,
       }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
+        <div style={{
+          fontSize: 10, fontWeight: 700, color: '#475569',
+          letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12,
+        }}>
           Strategy health
         </div>
 
         {[
           {
             label: 'Response rate',
-            value: data.totalApplied === 0 ? 'No applications yet' : `${data.responseRate}% of ${data.totalApplied} sent`,
+            value: data.totalApplied === 0
+              ? 'No applications yet'
+              : `${data.responseRate}% of ${data.totalApplied} sent`,
+            valueColor: data.totalApplied === 0 ? '#64748b' : responseColor(data.responseRate),
             ok: data.totalApplied === 0 || data.responseRate >= 15,
           },
           {
             label: 'Interview conversion',
-            value: data.totalApplied === 0 ? 'No applications yet' : `${data.interviewRate}% of applications`,
+            value: data.totalApplied === 0
+              ? 'No applications yet'
+              : `${data.interviewRate}% of applications`,
+            valueColor: data.totalApplied === 0 ? '#64748b' : interviewColor(data.interviewRate),
             ok: data.totalApplied === 0 || data.interviewRate >= 5,
+          },
+          {
+            label: 'Active offers',
+            value: data.totalOffers === 0 ? 'None yet' : `${data.totalOffers} open`,
+            valueColor: data.totalOffers > 0 ? '#4ade80' : '#64748b',
+            ok: true,
           },
           {
             label: 'Follow-ups overdue',
             value: data.staleJobs === 0 ? 'All caught up ✓' : `${data.staleJobs} need attention`,
+            valueColor: data.staleJobs === 0 ? '#64748b' : '#f87171',
             ok: data.staleJobs === 0,
           },
         ].map((row, i, arr) => (
@@ -237,14 +270,14 @@ export default function Metrics({ activeUser }: Props) {
             borderBottom: i < arr.length - 1 ? '1px solid #1e293b' : 'none',
           }}>
             <span style={{ fontSize: 12, color: '#64748b' }}>{row.label}</span>
-            <span style={{ fontSize: 12, fontWeight: 600, color: row.ok ? '#94a3b8' : '#f87171' }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: row.valueColor }}>
               {row.value}
             </span>
           </div>
         ))}
       </div>
 
-      {/* FLAGS — only shown if problems exist */}
+      {/* FLAGS */}
       {data.flags.length > 0 && (
         <div style={{ marginBottom: 12 }}>
           {data.flags.map((flag, i) => (
@@ -264,7 +297,20 @@ export default function Metrics({ activeUser }: Props) {
         </div>
       )}
 
-      {/* EMPTY STATE */}
+      {/* STATUS FOOTER */}
+      {data.flags.length === 0 && data.totalApplied > 0 && (
+        <div style={{
+          padding: '10px 14px',
+          background: '#0f1f14',
+          border: '1px solid #166534',
+          borderRadius: 10,
+          fontSize: 12,
+          color: '#4ade80',
+        }}>
+          ✅ Strategy on track. Keep the volume and quality high.
+        </div>
+      )}
+
       {data.totalApplied === 0 && (
         <div style={{
           padding: '12px 16px',
@@ -276,20 +322,7 @@ export default function Metrics({ activeUser }: Props) {
           fontStyle: 'italic',
           lineHeight: 1.6,
         }}>
-          Metrics populate as you apply and track. If response rate drops below 15%, the system flags it automatically.
-        </div>
-      )}
-
-      {data.flags.length === 0 && data.totalApplied > 0 && (
-        <div style={{
-          padding: '10px 14px',
-          background: '#0f1f14',
-          border: '1px solid #166534',
-          borderRadius: 10,
-          fontSize: 12,
-          color: '#4ade80',
-        }}>
-          ✅ Strategy on track. Keep the volume and quality high.
+          Metrics populate as you apply and track. Response rate below 15% triggers an automatic flag.
         </div>
       )}
 
