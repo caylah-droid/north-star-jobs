@@ -171,6 +171,54 @@ const sources = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'arbei
         </button>
       </div>
 
+      {/* Browse Manually */}
+      <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: '12px 16px', marginBottom: 12 }}>
+        <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>
+          🌐 Browse manually — paste URL below to add
+        </div>
+        {/* Tier 1 — Not in feed, high signal */}
+        <div style={{ fontSize: 10, color: '#4ade80', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+          ⭐ Highest priority — not in feed
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+          {[
+            { label: 'Wellfound', url: 'https://wellfound.com/jobs' },
+            { label: 'Crossover', url: 'https://www.crossover.com/jobs' },
+            { label: 'Somewhere', url: 'https://somewhere.com/jobs' },
+            { label: 'NoDesk', url: 'https://nodesk.co/remote-jobs/' },
+            { label: 'Scale.jobs', url: 'https://scale.jobs' },
+            { label: 'Deel Jobs', url: 'https://www.deel.com/jobs' },
+          ].map(link => (
+            <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+              <span style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#14532d', color: '#4ade80', cursor: 'pointer', border: '1px solid #166534', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                {link.label} ↗
+              </span>
+            </a>
+          ))}
+        </div>
+        {/* Tier 2 — Already in feed */}
+        <div style={{ fontSize: 10, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+          Already in feed
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {[
+            { label: 'WWR', url: 'https://weworkremotely.com' },
+            { label: 'Himalayas', url: 'https://himalayas.app/jobs' },
+            { label: 'RemoteOK', url: 'https://remoteok.com' },
+            { label: 'Remotive', url: 'https://remotive.com' },
+            { label: 'Jobicy', url: 'https://jobicy.com' },
+            { label: 'Working Nomads', url: 'https://www.workingnomads.com/jobs' },
+            { label: '4 Day Week', url: 'https://4dayweek.io' },
+          ].map(link => (
+            <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+              <span style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 500, background: '#0f172a', color: '#475569', cursor: 'pointer', border: '1px solid #1e293b', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                {link.label} ↗
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+
       {/* URL Paste Bar */}
       <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 12, padding: 16, marginBottom: 16 }}>
         <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
@@ -249,39 +297,6 @@ const sources = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'arbei
             </div>
           </div>
         )}
-      </div>
-
-      {/* Quick Links */}
-      <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: '10px 16px', marginBottom: 12 }}>
-        <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>
-          🌐 Browse manually
-        </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {[
-            { label: 'Wellfound', url: 'https://wellfound.com/jobs' },
-            { label: 'Deel Jobs', url: 'https://www.deel.com/jobs' },
-            { label: 'Crossover', url: 'https://www.crossover.com/jobs' },
-            { label: 'Scale.jobs', url: 'https://scale.jobs' },
-            { label: 'NoDesk', url: 'https://nodesk.co/remote-jobs/' },
-            { label: 'WWR', url: 'https://weworkremotely.com' },
-            { label: 'Himalayas', url: 'https://himalayas.app/jobs' },
-            { label: 'Somewhere', url: 'https://somewhere.com/jobs' },
-            { label: 'RemoteOK', url: 'https://remoteok.com' },
-            { label: 'Remotive', url: 'https://remotive.com' },
-            { label: 'Jobicy', url: 'https://jobicy.com' },
-          ].map(link => (
-            <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-              <span style={{
-                padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-                background: '#1e293b', color: '#94a3b8', cursor: 'pointer',
-                border: '1px solid #334155', whiteSpace: 'nowrap',
-                display: 'inline-block',
-              }}>
-                {link.label} ↗
-              </span>
-            </a>
-          ))}
-        </div>
       </div>
 
       {/* Stats Bar */}
