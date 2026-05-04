@@ -155,7 +155,9 @@ const sourceList = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'ar
     weworkremotely: 'WWR', jobicy: 'Jobicy', arbeitnow: 'Arbeitnow',
     himalayas: 'Himalayas', remoteok: 'RemoteOK', workingnomads: 'Working Nomads', '4dayweek': '4 Day Week'
   }
-  const filteredJobs = sourceFilter === 'all' ? jobs : jobs.filter(j => (j.source || '').toLowerCase() === sourceFilter.toLowerCase())
+  const filteredJobs = sourceFilter === 'all' 
+  ? jobs 
+  : jobs.filter(j => (j.source || '').toLowerCase() === sourceFilter.toLowerCase())
   console.log('sourceFilter:', sourceFilter, '| filteredJobs:', filteredJobs.length)
 
   return (
@@ -372,6 +374,7 @@ const sourceList = ['all', 'manual', 'remotive', 'weworkremotely', 'jobicy', 'ar
                     <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: '#14532d', color: '#4ade80' }}>🔥 Fresh</span>
                   )}
                   <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: '#1e293b', color: '#64748b' }}>{job.platform}</span>
+<span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: '#0f172a', color: '#334155', border: '1px solid #1e293b' }}>{job.source}</span>
                   <span style={{ fontSize: 12, color: '#475569', marginLeft: 'auto' }}>{timeAgo(job.postedAt)}</span>
                 </div>
 
