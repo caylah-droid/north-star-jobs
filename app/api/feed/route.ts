@@ -309,12 +309,16 @@ export async function GET(request: Request) {
 
   const combined = [...remotive, ...wwr, ...jobicy, ...arbeitnow, ...himalayas, ...remoteok, ...workingnomads, ...fourday]
 
+  const threeDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 3
+
   const seen = new Set()
   const unique = combined.filter(job => {
     if (!isEnglish(job.role, job.description || '')) return false
-    const key = job.url || `${job.company}-${job.role}`.toLowerCase()
+    const key = `${job.company}-${job.role}`.toLowerCase()
     if (seen.has(key)) return false
     seen.add(key)
+    // Keep if no date (unknown) or within 3 days
+    if (job.postedAt && new Date(job.postedAt).getTime() < threeDaysAgo) return false
     return true
   })
 
