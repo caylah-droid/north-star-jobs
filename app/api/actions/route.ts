@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// GET — fetch today's completed actions for a user
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const user = searchParams.get('user') || 'caylah'
@@ -13,22 +12,32 @@ export async function GET(req: NextRequest) {
   endOfDay.setHours(23, 59, 59, 999)
 
   try {
+    // Today's completed daily actions (outreach, followup, research)
     const actions = await prisma.action.findMany({
       where: {
         user,
         createdAt: { gte: startOfDay, lte: endOfDay },
       },
-      select: { id: true, type: true, createdAt: true },
+      select: { id: true, type: true },
       orderBy: { createdAt: 'desc' },
     })
-    return NextResponse.json(actions)
+
+    // Today's actual applications from pipeline
+    const appliedToday = await prisma.job.count({
+      where: {
+        user,
+        stage: 'applied',
+        appliedAt: { gte: startOfDay, lte: endOfDay },
+      },
+    })
+
+    return NextResponse.json({ actions, appliedToday })
   } catch (err) {
     console.error('GET /api/actions error:', err)
     return NextResponse.json({ error: 'Failed to fetch actions' }, { status: 500 })
   }
 }
 
-// POST — log a completed action
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -54,7 +63,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// DELETE — undo a completed action (uncheck)
 export async function DELETE(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
