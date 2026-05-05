@@ -19,228 +19,117 @@ const kyleActions = [
 ]
 
 const caylahTargets = [
-  { label: 'Outreach', actionId: 'outreach', value: 1, emoji: '🤝', isLive: false },
-  { label: 'Applications', actionId: 'apply', value: 5, emoji: '📨', isLive: true },
-  { label: 'Follow ups', actionId: 'followup', value: 2, emoji: '🔁', isLive: false },
+  { label: 'Outreach', actionId: 'outreach', value: 1, emoji: '🤝' },
+  { label: 'Applications', actionId: 'apply', value: 5, emoji: '📨' },
+  { label: 'Follow ups', actionId: 'followup', value: 2, emoji: '🔁' },
 ]
 
 const kyleTargets = [
-  { label: 'Outreach', actionId: 'outreach', value: 3, emoji: '🤝', isLive: false },
-  { label: 'Applications', actionId: 'apply', value: 5, emoji: '📨', isLive: true },
-  { label: 'Follow ups', actionId: 'followup', value: 3, emoji: '🔁', isLive: false },
-]
-
-const caylahPhrases = [
-  'Every system you build is proof. Proof beats polish.',
-  'The operator who shows up daily becomes the operator they hire.',
-  'One outreach before applying is worth ten applications after.',
-  'Your track record is your pitch. Let today add to it.',
-]
-const kylePhrases = [
-  'Relationships are the pipeline. Every message compounds.',
-  'Legal clients trust consistency. Show them yours today.',
-  'The best CS candidates are already in conversation. Start yours.',
-  'Every follow-up is a signal: I care about this. Send it.',
+  { label: 'Outreach', actionId: 'outreach', value: 3, emoji: '🤝' },
+  { label: 'Applications', actionId: 'apply', value: 5, emoji: '📨' },
+  { label: 'Follow ups', actionId: 'followup', value: 3, emoji: '🔁' },
 ]
 
 export default function DailyActions({ activeUser }: Props) {
   const isKyle = activeUser === 'kyle'
   const accent = isKyle ? '#7c3aed' : '#2563eb'
-  const accentLight = isKyle ? '#a78bfa' : '#60a5fa'
-  const accentBg = isKyle ? '#2e1065' : '#1e3a5f'
 
   const actions = isKyle ? kyleActions : caylahActions
   const targets = isKyle ? kyleTargets : caylahTargets
-  const phrases = isKyle ? kylePhrases : caylahPhrases
 
   const [savedActions, setSavedActions] = useState<SavedAction[]>([])
   const [appliedToday, setAppliedToday] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
 
-  useEffect(() => {
+  const loadData = async () => {
     setLoading(true)
-    fetch(`/api/actions?user=${activeUser}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.actions && Array.isArray(data.actions)) {
-          setSavedActions(data.actions)
-        }
-        if (typeof data.appliedToday === 'number') {
-          setAppliedToday(data.appliedToday)
-        }
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }, [activeUser])
+    const res = await fetch(`/api/actions?user=${activeUser}`)
+    const data = await res.json()
 
-  const isDone = (actionId: string) => {
-    // Applications: driven by actual pipeline data
-    if (actionId === 'apply') return appliedToday >= 5
-    return savedActions.some(a => a.type === actionId)
+    if (data.actions) setSavedActions(data.actions)
+    if (typeof data.appliedToday === 'number') setAppliedToday(data.appliedToday)
+
+    setLoading(false)
   }
 
-  const getSavedId = (actionId: string) =>
-    savedActions.find(a => a.type === actionId)?.id
+  useEffect(() => {
+    loadData()
+  }, [activeUser])
 
+  // 🔥 COUNT instead of boolean
+  const getCount = (actionId: string) => {
+    if (actionId === 'apply') return appliedToday
+    return savedActions.filter(a => a.type === actionId).length
+  }
+
+  const isDone = (actionId: string) => {
+    const target = targets.find(t => t.actionId === actionId)?.value || 1
+    return getCount(actionId) >= target
+  }
+
+  // 🔥 ALWAYS ADD (no toggle delete)
   const toggle = async (actionId: string) => {
-    // Applications are auto-tracked from pipeline — not manually toggled
     if (actionId === 'apply') return
     if (saving) return
+
     setSaving(actionId)
 
-    if (isDone(actionId)) {
-      const dbId = getSavedId(actionId)
-      if (!dbId) { setSaving(null); return }
-      try {
-        await fetch(`/api/actions?id=${dbId}`, { method: 'DELETE' })
-        setSavedActions(prev => prev.filter(a => a.id !== dbId))
-      } catch (e) { console.error(e) }
-    } else {
-      try {
-        const res = await fetch('/api/actions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user: activeUser, type: actionId }),
-        })
-        const saved = await res.json()
-        if (saved.id) setSavedActions(prev => [...prev, { id: saved.id, type: saved.type }])
-      } catch (e) { console.error(e) }
+    try {
+      const res = await fetch('/api/actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: activeUser, type: actionId }),
+      })
+
+      const saved = await res.json()
+
+      if (saved.id) {
+        setSavedActions(prev => [...prev, { id: saved.id, type: saved.type }])
+      }
+    } catch (e) {
+      console.error(e)
     }
+
+    // 🔥 refresh applied count immediately
+    await loadData()
+
     setSaving(null)
   }
 
-  // For progress: applications count toward done if target met
-  const applyTarget = 5
-  const applyDone = appliedToday >= applyTarget
-  const nonApplyActions = actions.filter(a => a.id !== 'apply')
-  const nonApplyDone = nonApplyActions.filter(a => isDone(a.id)).length
-  const completedCount = (applyDone ? 1 : 0) + nonApplyDone
-  const totalCount = actions.length
-  const allDone = completedCount === totalCount
-  const progressPct = loading ? 0 : Math.round((completedCount / totalCount) * 100)
-
-  const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-  const phrase = phrases[new Date().getDay() % phrases.length]
+  const today = new Date().toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
 
-      {/* CONTRACT BLOCK */}
-      <div style={{
-        background: '#0f172a',
-        border: `1px solid ${allDone ? '#166534' : '#1e293b'}`,
-        borderTop: `3px solid ${allDone ? '#22c55e' : accent}`,
-        borderRadius: 12,
-        padding: '14px 16px',
-        marginBottom: 16,
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            Today's contract
-          </span>
-          <span style={{ fontSize: 10, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            {today}
-          </span>
-        </div>
-
-        {/* Targets */}
-        <div style={{ display: 'flex', gap: 0, marginBottom: 14 }}>
-          {targets.map((t, i) => {
-            const isApply = t.actionId === 'apply'
-            const done = isApply ? appliedToday >= t.value : isDone(t.actionId)
-            // For applications show X/5 live count
-            const displayValue = isApply
-              ? loading ? '…' : `${appliedToday}/${t.value}`
-              : done ? '✓' : String(t.value)
-
-            return (
-              <div
-                key={t.label}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  paddingRight: i < targets.length - 1 ? 12 : 0,
-                  marginRight: i < targets.length - 1 ? 12 : 0,
-                  borderRight: i < targets.length - 1 ? '1px solid #1e293b' : 'none',
-                  minWidth: 0,
-                }}
-              >
-                <div style={{
-                  fontSize: isApply ? 22 : 28,
-                  fontWeight: 800,
-                  color: done ? '#22c55e' : loading ? '#334155' : accentLight,
-                  lineHeight: 1,
-                  letterSpacing: '-0.02em',
-                  flexShrink: 0,
-                  transition: 'color 0.3s',
-                }}>
-                  {displayValue}
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 12,
-                    color: done ? '#4ade80' : 'white',
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}>
-                    {t.label}
-                  </div>
-                  <div style={{ fontSize: 10, color: '#334155', marginTop: 1 }}>
-                    {isApply ? '📨 from pipeline' : t.emoji}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Progress bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ flex: 1, background: '#1e293b', borderRadius: 999, height: 5, overflow: 'hidden' }}>
-            <div style={{
-              height: '100%',
-              width: `${progressPct}%`,
-              background: allDone ? '#22c55e' : accent,
-              borderRadius: 999,
-              transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-            }} />
-          </div>
-          <span style={{ fontSize: 11, fontWeight: 700, color: allDone ? '#22c55e' : '#475569', minWidth: 30, textAlign: 'right' }}>
-            {loading ? '...' : `${progressPct}%`}
-          </span>
-        </div>
+      {/* HEADER */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 12, color: '#64748b' }}>{today}</div>
       </div>
 
-      {/* ALL DONE */}
-      {allDone && !loading && (
-        <div style={{
-          background: '#0f1f14',
-          border: '1px solid #166534',
-          borderRadius: 12,
-          padding: '14px 16px',
-          marginBottom: 16,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 14,
-        }}>
-          <span style={{ fontSize: 26, flexShrink: 0 }}>🏆</span>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#4ade80' }}>Mission accomplished.</div>
-            <div style={{ fontSize: 11, color: '#4ade80', opacity: 0.6, fontStyle: 'italic', marginTop: 2 }}>"{phrase}"</div>
-          </div>
-        </div>
-      )}
+      {/* TARGETS */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+        {targets.map(t => {
+          const current = getCount(t.actionId)
+          return (
+            <div key={t.label} style={{ flex: 1 }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>
+                {current}/{t.value}
+              </div>
+              <div style={{ fontSize: 11, color: '#64748b' }}>{t.label}</div>
+            </div>
+          )
+        })}
+      </div>
 
-      {/* TASK CARDS */}
-      {actions.map((action) => {
-        const isApply = action.id === 'apply'
+      {/* TASKS */}
+      {actions.map(action => {
+        const count = getCount(action.id)
         const done = isDone(action.id)
-        const isHigh = action.priority === 'high'
         const isSaving = saving === action.id
 
         return (
@@ -252,98 +141,41 @@ export default function DailyActions({ activeUser }: Props) {
               gap: 12,
               background: done ? '#0a150d' : '#0f172a',
               border: `1px solid ${done ? '#166534' : '#1e293b'}`,
-              borderLeft: `3px solid ${done ? '#22c55e' : isHigh ? accent : '#eab308'}`,
+              borderLeft: `3px solid ${done ? '#22c55e' : accent}`,
               borderRadius: 10,
               padding: '12px 14px',
               marginBottom: 8,
-              transition: 'all 0.25s ease',
               opacity: isSaving ? 0.6 : 1,
             }}
           >
-            {/* Circle — not clickable for apply (auto-tracked) */}
             <button
               onClick={() => toggle(action.id)}
-              disabled={isSaving || loading || isApply}
+              disabled={isSaving || loading || action.id === 'apply'}
               style={{
                 width: 24,
                 height: 24,
                 borderRadius: '50%',
-                border: `2px solid ${done ? '#22c55e' : isApply ? '#1e293b' : '#334155'}`,
+                border: `2px solid ${done ? '#22c55e' : '#334155'}`,
                 background: done ? '#22c55e' : 'transparent',
                 color: 'white',
                 fontSize: 11,
-                fontWeight: 700,
-                cursor: isApply ? 'default' : isSaving || loading ? 'wait' : 'pointer',
-                flexShrink: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s',
+                cursor: 'pointer',
               }}
             >
-              {isSaving ? '…' : done ? '✓' : isApply ? `${appliedToday}` : ''}
+              {isSaving ? '…' : action.id === 'apply' ? count : count > 0 ? count : ''}
             </button>
 
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
-                <span style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  padding: '1px 6px',
-                  borderRadius: 20,
-                  background: done ? '#14532d' : accentBg,
-                  color: done ? '#4ade80' : accentLight,
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {action.type}
-                </span>
-                {!done && isHigh && (
-                  <span style={{ fontSize: 10, color: '#ef4444', fontWeight: 600, whiteSpace: 'nowrap' }}>● Priority</span>
-                )}
-                {isApply && !done && (
-                  <span style={{ fontSize: 10, color: '#475569', whiteSpace: 'nowrap' }}>auto-tracked from pipeline</span>
-                )}
+            <div style={{ flex: 1 }}>
+              <div style={{ color: 'white', fontWeight: 600 }}>
+                {action.title} ({count}/{targets.find(t => t.actionId === action.id)?.value})
               </div>
-
-              <div style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: done ? '#334155' : 'white',
-                textDecoration: done ? 'line-through' : 'none',
-                marginBottom: done ? 0 : 2,
-              }}>
-                {action.emoji} {action.title}
+              <div style={{ fontSize: 12, color: '#64748b' }}>
+                {action.description}
               </div>
-
-              {!done && (
-                <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.5 }}>
-                  {action.description}
-                </div>
-              )}
             </div>
           </div>
         )
       })}
-
-      {/* DAILY INSIGHT */}
-      {!allDone && !loading && (
-        <div style={{
-          marginTop: 16,
-          padding: '12px 14px',
-          background: '#0d0d14',
-          border: '1px solid #1e293b',
-          borderRadius: 10,
-          fontSize: 11,
-          color: '#334155',
-          lineHeight: 1.7,
-          fontStyle: 'italic',
-        }}>
-          "{phrase}"
-        </div>
-      )}
-
     </div>
   )
 }
