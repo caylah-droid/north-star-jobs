@@ -317,8 +317,6 @@ export async function GET(request: Request) {
     const key = `${job.company}-${job.role}`.toLowerCase()
     if (seen.has(key)) return false
     seen.add(key)
-    // Keep if no date (unknown) or within 3 days
-    if (job.postedAt && new Date(job.postedAt).getTime() < threeDaysAgo) return false
     return true
   })
 
