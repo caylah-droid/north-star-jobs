@@ -74,6 +74,16 @@ type CardProps = {
   onPitch: (job: Job) => void
 }
 
+type ChipProps = {
+  job: Job
+  accent: string
+  staleDays: number
+  updating: string | null
+  onStage: (id: string, stage: string) => void
+  onPitch: (job: Job) => void
+  onDelete: (id: string) => void
+}
+
 const JobCard = ({ job, accent, staleDays, updating, onStage, onDelete, onPitch }: CardProps) => {
   const stale = checkStale(job, staleDays)
   const hasInterview = job.stage === 'interview'
