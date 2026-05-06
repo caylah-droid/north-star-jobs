@@ -3,31 +3,38 @@
 import { useState, useEffect } from 'react'
 
 type Props = { activeUser: 'caylah' | 'kyle' }
-type SavedAction = { id: string; type: string }
+
+type TodayStats = {
+  appliedToday: number
+  outreachToday: number
+  followUpsToday: number
+  staleCount: number
+}
 
 const caylahActions = [
-  { id: 'outreach', type: 'Outreach', emoji: '🤝', title: 'Send 1 warm outreach', description: 'Find the hiring manager on LinkedIn. Connect before you apply — 5× more effective.', priority: 'high' },
-  { id: 'apply', type: 'Apply', emoji: '📨', title: 'Apply to 5 targeted roles', description: 'Direct career page only. No Easy Apply. RevOps or GTM Ops at Series A–C SaaS.', priority: 'high' },
-  { id: 'followup', type: 'Follow Up', emoji: '🔁', title: 'Follow up on 2 stale applications', description: 'No response after 5 days? Send a short, confident nudge.', priority: 'medium' },
+  { id: 1, type: 'Apply', emoji: '📨', title: 'Apply to 5 targeted roles', description: 'Direct career page only. No Easy Apply. RevOps or GTM Ops at Series A–C SaaS.', priority: 'high', target: 5, statKey: 'appliedToday' },
+  { id: 2, type: 'Outreach', emoji: '🤝', title: 'Send 1 warm outreach', description: 'Find the hiring manager on LinkedIn. Connect before you apply — 5× more effective.', priority: 'high', target: 1, statKey: null },
+  { id: 3, type: 'Follow Up', emoji: '🔁', title: 'Follow up on 2 stale applications', description: 'No response after 5 days? Send a short, confident nudge.', priority: 'medium', target: 2, statKey: 'staleCount' },
+  { id: 4, type: 'Proof of Work', emoji: '⚒️', title: 'Create 1 proof-of-work asset', description: 'Loom audit, process doc, or LinkedIn post as The Operator.', priority: 'medium', target: 1, statKey: null },
 ]
 
 const kyleActions = [
-  { id: 'outreach', type: 'Outreach', emoji: '🤝', title: 'Send 3 outreach messages', description: 'Personalised LinkedIn notes referencing legal or marketing ops context.', priority: 'high' },
-  { id: 'apply', type: 'Apply', emoji: '📨', title: 'Apply to 5 targeted roles', description: 'CSM or Account Manager at LegalTech or Marketing platforms. Direct page only.', priority: 'high' },
-  { id: 'research', type: 'Research', emoji: '🔍', title: 'Research 1 target company', description: 'LegalTech or Marketing Ops. Find the CS team and hiring manager name.', priority: 'high' },
-  { id: 'followup', type: 'Follow Up', emoji: '🔁', title: 'Follow up on 3 conversations', description: 'Any outreach or application older than 4 days with no reply.', priority: 'medium' },
+  { id: 1, type: 'Research', emoji: '🔍', title: 'Research 1 target company', description: 'LegalTech or Marketing Ops. Find the CS team and hiring manager name.', priority: 'high', target: 1, statKey: null },
+  { id: 2, type: 'Apply', emoji: '📨', title: 'Apply to 5 targeted roles', description: 'CSM or Account Manager at LegalTech or Marketing platforms. Direct page only.', priority: 'high', target: 5, statKey: 'appliedToday' },
+  { id: 3, type: 'Outreach', emoji: '🤝', title: 'Send 3 outreach messages', description: 'Personalised LinkedIn notes referencing legal or marketing ops context.', priority: 'high', target: 3, statKey: null },
+  { id: 4, type: 'Follow Up', emoji: '🔁', title: 'Follow up on 3 conversations', description: 'Any outreach or application older than 4 days with no reply.', priority: 'medium', target: 3, statKey: 'staleCount' },
 ]
 
 const caylahTargets = [
-  { label: 'Outreach', actionId: 'outreach', value: 1, emoji: '🤝', isLive: false },
-  { label: 'Applications', actionId: 'apply', value: 5, emoji: '📨', isLive: true },
-  { label: 'Follow ups', actionId: 'followup', value: 2, emoji: '🔁', isLive: false },
+  { label: 'Outreach', value: 1, emoji: '🤝', statKey: null },
+  { label: 'Applied', value: 5, emoji: '📨', statKey: 'appliedToday' },
+  { label: 'Follow ups', value: 2, emoji: '🔁', statKey: 'staleCount' },
 ]
 
 const kyleTargets = [
-  { label: 'Outreach', actionId: 'outreach', value: 3, emoji: '🤝', isLive: false },
-  { label: 'Applications', actionId: 'apply', value: 5, emoji: '📨', isLive: true },
-  { label: 'Follow ups', actionId: 'followup', value: 3, emoji: '🔁', isLive: false },
+  { label: 'Outreach', value: 3, emoji: '🤝', statKey: null },
+  { label: 'Applied', value: 5, emoji: '📨', statKey: 'appliedToday' },
+  { label: 'Follow ups', value: 3, emoji: '🔁', statKey: 'staleCount' },
 ]
 
 const caylahPhrases = [
@@ -36,6 +43,7 @@ const caylahPhrases = [
   'One outreach before applying is worth ten applications after.',
   'Your track record is your pitch. Let today add to it.',
 ]
+
 const kylePhrases = [
   'Relationships are the pipeline. Every message compounds.',
   'Legal clients trust consistency. Show them yours today.',
@@ -53,72 +61,79 @@ export default function DailyActions({ activeUser }: Props) {
   const targets = isKyle ? kyleTargets : caylahTargets
   const phrases = isKyle ? kylePhrases : caylahPhrases
 
-  const [savedActions, setSavedActions] = useState<SavedAction[]>([])
-  const [appliedToday, setAppliedToday] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState<string | null>(null)
+  const [done, setDone] = useState<Set<number>>(new Set())
+  const [stats, setStats] = useState<TodayStats>({ appliedToday: 0, outreachToday: 0, followUpsToday: 0, staleCount: 0 })
 
   useEffect(() => {
-    setLoading(true)
-    fetch(`/api/actions?user=${activeUser}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.actions && Array.isArray(data.actions)) {
-          setSavedActions(data.actions)
+    // Reset ticks when user switches
+    setDone(new Set())
+
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`/api/jobs?user=${activeUser}`)
+        const jobs = await res.json()
+
+        const todayStart = new Date()
+        todayStart.setHours(0, 0, 0, 0)
+
+        const fiveDaysAgo = new Date()
+        fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5)
+
+        const staleDaysAgo = isKyle ? 4 : 5
+        const staleThreshold = new Date()
+        staleThreshold.setDate(staleThreshold.getDate() - staleDaysAgo)
+
+        const appliedToday = jobs.filter((j: any) =>
+          j.stage === 'applied' && j.appliedAt && new Date(j.appliedAt) >= todayStart
+        ).length
+
+        // Stale = applied stage, appliedAt more than N days ago
+        const staleCount = jobs.filter((j: any) =>
+          j.stage === 'applied' &&
+          j.appliedAt &&
+          new Date(j.appliedAt) <= staleThreshold
+        ).length
+
+        setStats({ appliedToday, outreachToday: 0, followUpsToday: 0, staleCount })
+
+        // Auto-complete apply if target hit
+        const applyTarget = 5
+        if (appliedToday >= applyTarget) {
+          setDone(prev => {
+            const next = new Set(prev)
+            next.add(isKyle ? 2 : 1)
+            return next
+          })
         }
-        if (typeof data.appliedToday === 'number') {
-          setAppliedToday(data.appliedToday)
-        }
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+      } catch { }
+    }
+
+    fetchStats()
   }, [activeUser])
 
-  const isDone = (actionId: string) => {
-    // Applications: driven by actual pipeline data
-    if (actionId === 'apply') return appliedToday >= 5
-    return savedActions.some(a => a.type === actionId)
+  const toggle = (id: number) => {
+    setDone(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
   }
 
-  const getSavedId = (actionId: string) =>
-    savedActions.find(a => a.type === actionId)?.id
-
-  const toggle = async (actionId: string) => {
-    // Applications are auto-tracked from pipeline — not manually toggled
-    if (actionId === 'apply') return
-    if (saving) return
-    setSaving(actionId)
-
-    if (isDone(actionId)) {
-      const dbId = getSavedId(actionId)
-      if (!dbId) { setSaving(null); return }
-      try {
-        await fetch(`/api/actions?id=${dbId}`, { method: 'DELETE' })
-        setSavedActions(prev => prev.filter(a => a.id !== dbId))
-      } catch (e) { console.error(e) }
-    } else {
-      try {
-        const res = await fetch('/api/actions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user: activeUser, type: actionId }),
-        })
-        const saved = await res.json()
-        if (saved.id) setSavedActions(prev => [...prev, { id: saved.id, type: saved.type }])
-      } catch (e) { console.error(e) }
-    }
-    setSaving(null)
+  const getStatValue = (statKey: string | null): number => {
+    if (!statKey) return 0
+    return stats[statKey as keyof TodayStats] || 0
   }
 
-  // For progress: applications count toward done if target met
-  const applyTarget = 5
-  const applyDone = appliedToday >= applyTarget
-  const nonApplyActions = actions.filter(a => a.id !== 'apply')
-  const nonApplyDone = nonApplyActions.filter(a => isDone(a.id)).length
-  const completedCount = (applyDone ? 1 : 0) + nonApplyDone
+  const isAutoComplete = (action: typeof caylahActions[0]): boolean => {
+    if (!action.statKey) return false
+    const val = getStatValue(action.statKey)
+    return val >= action.target
+  }
+
+  const completedCount = actions.filter(a => done.has(a.id) || isAutoComplete(a)).length
   const totalCount = actions.length
   const allDone = completedCount === totalCount
-  const progressPct = loading ? 0 : Math.round((completedCount / totalCount) * 100)
+  const progressPct = Math.round((completedCount / totalCount) * 100)
 
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
   const phrase = phrases[new Date().getDay() % phrases.length]
@@ -126,7 +141,7 @@ export default function DailyActions({ activeUser }: Props) {
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
 
-      {/* CONTRACT BLOCK */}
+      {/* ── CONTRACT BLOCK ── */}
       <div style={{
         background: '#0f172a',
         border: `1px solid ${allDone ? '#166534' : '#1e293b'}`,
@@ -135,7 +150,8 @@ export default function DailyActions({ activeUser }: Props) {
         padding: '14px 16px',
         marginBottom: 16,
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        {/* Header row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             Today's contract
           </span>
@@ -144,55 +160,51 @@ export default function DailyActions({ activeUser }: Props) {
           </span>
         </div>
 
-        {/* Targets */}
-        <div style={{ display: 'flex', gap: 0, marginBottom: 14 }}>
+        {/* Targets row — wraps on mobile */}
+        <div style={{ display: 'flex', gap: 0, marginBottom: 12, flexWrap: 'nowrap', overflowX: 'auto' }}>
           {targets.map((t, i) => {
-            const isApply = t.actionId === 'apply'
-            const done = isApply ? appliedToday >= t.value : isDone(t.actionId)
-            // For applications show X/5 live count
-            const displayValue = isApply
-              ? loading ? '…' : `${appliedToday}/${t.value}`
-              : done ? '✓' : String(t.value)
-
+            const actual = t.statKey ? getStatValue(t.statKey) : null
+            const hit = actual !== null && actual >= t.value
             return (
               <div
                 key={t.label}
                 style={{
-                  flex: 1,
+                  flex: '1 1 0',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
+                  gap: 6,
                   paddingRight: i < targets.length - 1 ? 12 : 0,
                   marginRight: i < targets.length - 1 ? 12 : 0,
                   borderRight: i < targets.length - 1 ? '1px solid #1e293b' : 'none',
                   minWidth: 0,
                 }}
               >
-                <div style={{
-                  fontSize: isApply ? 22 : 28,
-                  fontWeight: 800,
-                  color: done ? '#22c55e' : loading ? '#334155' : accentLight,
-                  lineHeight: 1,
-                  letterSpacing: '-0.02em',
-                  flexShrink: 0,
-                  transition: 'color 0.3s',
-                }}>
-                  {displayValue}
+                <div style={{ flexShrink: 0 }}>
+                  <div style={{
+                    fontSize: 26,
+                    fontWeight: 800,
+                    color: hit ? '#22c55e' : accentLight,
+                    lineHeight: 1,
+                    letterSpacing: '-0.02em',
+                  }}>
+                    {actual !== null ? actual : t.value}
+                  </div>
+                  {actual !== null && (
+                    <div style={{ fontSize: 9, color: '#475569', marginTop: 1 }}>/ {t.value}</div>
+                  )}
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <div style={{
-                    fontSize: 12,
-                    color: done ? '#4ade80' : 'white',
+                    fontSize: 11,
+                    color: hit ? '#4ade80' : 'white',
                     fontWeight: 600,
-                    whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                   }}>
                     {t.label}
                   </div>
-                  <div style={{ fontSize: 10, color: '#334155', marginTop: 1 }}>
-                    {isApply ? '📨 from pipeline' : t.emoji}
-                  </div>
+                  <div style={{ fontSize: 10, color: '#334155', marginTop: 1 }}>{t.emoji}</div>
                 </div>
               </div>
             )
@@ -211,22 +223,16 @@ export default function DailyActions({ activeUser }: Props) {
             }} />
           </div>
           <span style={{ fontSize: 11, fontWeight: 700, color: allDone ? '#22c55e' : '#475569', minWidth: 30, textAlign: 'right' }}>
-            {loading ? '...' : `${progressPct}%`}
+            {progressPct}%
           </span>
         </div>
       </div>
 
-      {/* ALL DONE */}
-      {allDone && !loading && (
+      {/* ── ALL DONE BANNER ── */}
+      {allDone && (
         <div style={{
-          background: '#0f1f14',
-          border: '1px solid #166534',
-          borderRadius: 12,
-          padding: '14px 16px',
-          marginBottom: 16,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 14,
+          background: '#0f1f14', border: '1px solid #166534', borderRadius: 12,
+          padding: '14px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 14,
         }}>
           <span style={{ fontSize: 26, flexShrink: 0 }}>🏆</span>
           <div>
@@ -236,90 +242,104 @@ export default function DailyActions({ activeUser }: Props) {
         </div>
       )}
 
-      {/* TASK CARDS */}
+      {/* ── ACTION CARDS ── */}
       {actions.map((action) => {
-        const isApply = action.id === 'apply'
-        const done = isDone(action.id)
+        const autoComplete = isAutoComplete(action)
+        const isDone = done.has(action.id) || autoComplete
         const isHigh = action.priority === 'high'
-        const isSaving = saving === action.id
+        const statVal = action.statKey ? getStatValue(action.statKey) : null
 
         return (
           <div
             key={action.id}
+            onClick={() => toggle(action.id)}
             style={{
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               gap: 12,
-              background: done ? '#0a150d' : '#0f172a',
-              border: `1px solid ${done ? '#166534' : '#1e293b'}`,
-              borderLeft: `3px solid ${done ? '#22c55e' : isHigh ? accent : '#eab308'}`,
+              background: isDone ? '#0a150d' : '#0f172a',
+              border: `1px solid ${isDone ? '#166534' : '#1e293b'}`,
+              borderLeft: `3px solid ${isDone ? '#22c55e' : isHigh ? accent : '#eab308'}`,
               borderRadius: 10,
               padding: '12px 14px',
               marginBottom: 8,
               transition: 'all 0.25s ease',
-              opacity: isSaving ? 0.6 : 1,
+              cursor: 'pointer',
+              userSelect: 'none',
             }}
           >
-            {/* Circle — not clickable for apply (auto-tracked) */}
-            <button
-              onClick={() => toggle(action.id)}
-              disabled={isSaving || loading || isApply}
+            {/* Tick circle */}
+            <div
               style={{
-                width: 24,
-                height: 24,
-                borderRadius: '50%',
-                border: `2px solid ${done ? '#22c55e' : isApply ? '#1e293b' : '#334155'}`,
-                background: done ? '#22c55e' : 'transparent',
-                color: 'white',
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: isApply ? 'default' : isSaving || loading ? 'wait' : 'pointer',
+                width: 24, height: 24, borderRadius: '50%',
+                border: `2px solid ${isDone ? '#22c55e' : '#334155'}`,
+                background: isDone ? '#22c55e' : 'transparent',
+                color: 'white', fontSize: 11, fontWeight: 700,
                 flexShrink: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.2s', marginTop: 1,
               }}
             >
-              {isSaving ? '…' : done ? '✓' : isApply ? `${appliedToday}` : ''}
-            </button>
+              {isDone ? '✓' : ''}
+            </div>
 
+            {/* Content */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
                 <span style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  padding: '1px 6px',
-                  borderRadius: 20,
-                  background: done ? '#14532d' : accentBg,
-                  color: done ? '#4ade80' : accentLight,
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                  whiteSpace: 'nowrap',
+                  fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 20,
+                  background: isDone ? '#14532d' : accentBg,
+                  color: isDone ? '#4ade80' : accentLight,
+                  letterSpacing: '0.05em', textTransform: 'uppercase', whiteSpace: 'nowrap',
                 }}>
                   {action.type}
                 </span>
-                {!done && isHigh && (
+                {!isDone && isHigh && (
                   <span style={{ fontSize: 10, color: '#ef4444', fontWeight: 600, whiteSpace: 'nowrap' }}>● Priority</span>
                 )}
-                {isApply && !done && (
-                  <span style={{ fontSize: 10, color: '#475569', whiteSpace: 'nowrap' }}>auto-tracked from pipeline</span>
+                {statVal !== null && !autoComplete && (
+                  <span style={{ fontSize: 10, color: '#64748b', whiteSpace: 'nowrap' }}>
+                    {statVal}/{action.target}
+                  </span>
+                )}
+                {autoComplete && (
+                  <span style={{ fontSize: 10, color: '#4ade80', fontWeight: 600 }}>✓ Target hit</span>
                 )}
               </div>
 
               <div style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: done ? '#334155' : 'white',
-                textDecoration: done ? 'line-through' : 'none',
-                marginBottom: done ? 0 : 2,
+                fontSize: 13, fontWeight: 600,
+                color: isDone ? '#334155' : 'white',
+                textDecoration: isDone ? 'line-through' : 'none',
+                marginBottom: isDone ? 0 : 2,
               }}>
                 {action.emoji} {action.title}
+                {/* Show stale count hint on follow-up */}
+                {action.statKey === 'staleCount' && stats.staleCount > 0 && !isDone && (
+                  <span style={{ marginLeft: 8, fontSize: 11, color: '#f59e0b', fontWeight: 500 }}>
+                    ({stats.staleCount} waiting)
+                  </span>
+                )}
               </div>
 
-              {!done && (
+              {!isDone && (
                 <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.5 }}>
                   {action.description}
+                </div>
+              )}
+
+              {/* Mini progress bar for apply */}
+              {statVal !== null && statVal > 0 && !autoComplete && (
+                <div style={{ marginTop: 6 }}>
+                  <div style={{ background: '#1e293b', borderRadius: 999, height: 3, overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%',
+                      width: `${Math.min(100, Math.round((statVal / action.target) * 100))}%`,
+                      background: accent,
+                      borderRadius: 999,
+                      transition: 'width 0.5s ease',
+                    }} />
+                  </div>
                 </div>
               )}
             </div>
@@ -327,23 +347,17 @@ export default function DailyActions({ activeUser }: Props) {
         )
       })}
 
-      {/* DAILY INSIGHT */}
-      {!allDone && !loading && (
+      {/* ── QUOTE ── */}
+      {!allDone && (
         <div style={{
-          marginTop: 16,
-          padding: '12px 14px',
-          background: '#0d0d14',
-          border: '1px solid #1e293b',
-          borderRadius: 10,
-          fontSize: 11,
-          color: '#334155',
-          lineHeight: 1.7,
-          fontStyle: 'italic',
+          marginTop: 16, padding: '12px 14px',
+          background: '#0d0d14', border: '1px solid #1e293b',
+          borderRadius: 10, fontSize: 11, color: '#334155',
+          lineHeight: 1.7, fontStyle: 'italic',
         }}>
           "{phrase}"
         </div>
       )}
-
     </div>
   )
 }
