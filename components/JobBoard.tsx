@@ -246,10 +246,10 @@ export default function JobBoard({ activeUser }: Props) {
               : jobsByStage(stage.id).map(job => (
                 <div key={job.id}>
                   {stage.id === 'rejected' ? (
-                    <div style={{ background: '#1e293b', borderRadius: 8, padding: '6px 10px', marginBottom: 6, opacity: 0.5 }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>{job.company}</div>
-                      <div style={{ fontSize: 10, color: '#334155', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.role}</div>
-                      <button onClick={() => deleteJob(job.id)} style={{ fontSize: 9, padding: '2px 6px', background: 'transparent', color: '#334155', border: 'none', borderRadius: 4, cursor: 'pointer', marginTop: 4 }}>🗑️ remove</button>
+                    <div style={{ background: '#1e293b', borderRadius: 8, padding: '8px 10px', marginBottom: 6, borderLeft: '3px solid #f87171' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>{job.company}</div>
+                      <div style={{ fontSize: 11, color: '#64748b', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.role}</div>
+                      <button onClick={() => deleteJob(job.id)} style={{ fontSize: 10, padding: '2px 8px', background: 'transparent', color: '#475569', border: 'none', borderRadius: 4, cursor: 'pointer', marginTop: 6 }}>🗑️ remove</button>
                     </div>
                   ) : (
                     <KanbanChip job={job} accent={accent} staleDays={staleDays} updating={updating} onStage={updateStage} onPitch={setPitchJob} onDelete={deleteJob} />
