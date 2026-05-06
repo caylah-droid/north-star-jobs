@@ -62,8 +62,8 @@ function CompanyCard({
   return (
     <div style={{
       background: '#0d1117',
-      border: `1px solid ${isExpanded ? accent : '#1e293b'}`,
-      borderLeft: `3px solid ${isExpanded ? accent : TIER_COLOR[tier]}`,
+      border: '1px solid ' + (isExpanded ? accent : '#1e293b'),
+      borderLeft: '3px solid ' + (isExpanded ? accent : TIER_COLOR[tier]),
       borderRadius: 10,
       marginBottom: 8,
       overflow: 'hidden',
