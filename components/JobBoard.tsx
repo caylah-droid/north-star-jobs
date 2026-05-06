@@ -147,6 +147,7 @@ const KanbanChip = ({ job, accent, staleDays, updating, onStage, onPitch }: Chip
           </button>
         )}
         <button onClick={() => onPitch(job)} style={{ fontSize: 10, padding: '3px 8px', background: '#0f172a', color: '#64748b', border: 'none', borderRadius: 4, cursor: 'pointer' }}>✨</button>
+        <button onClick={() => onStage(job.id, 'rejected')} style={{ fontSize: 10, padding: '3px 6px', background: '#1e1a2e', color: '#f87171', border: '1px solid #7f1d1d', borderRadius: 4, cursor: 'pointer' }}>👎</button>
       </div>
     </div>
   )
@@ -193,7 +194,6 @@ export default function JobBoard({ activeUser }: Props) {
 
   const topJobs = jobs.filter(j => j.stage !== 'rejected').slice(0, 5)
   const jobsByStage = (stage: string) => jobs.filter(j => j.stage === stage)
-  const activeStages = stages.filter(s => s.id !== 'rejected')
   const rejectedJobs = jobsByStage('rejected')
 
   return (
@@ -251,19 +251,31 @@ export default function JobBoard({ activeUser }: Props) {
       </div>
 
       <div className="kanban-grid kanban-desktop">
-        {activeStages.map(stage => (
-          <div key={stage.id} className="kanban-col">
+        {stages.map(stage => (
+          <div key={stage.id} className="kanban-col" style={{ opacity: stage.id === 'rejected' ? 0.6 : 1 }}>
             <div className="kanban-header">{stage.emoji} {stage.label} <span style={{ marginLeft: 6, color: '#475569' }}>{jobsByStage(stage.id).length}</span></div>
             {jobsByStage(stage.id).length === 0
               ? <div className="kanban-empty">Empty</div>
-              : jobsByStage(stage.id).map(job => <KanbanChip key={job.id} job={job} accent={accent} staleDays={staleDays} updating={updating} onStage={updateStage} onPitch={setPitchJob} />)
+              : jobsByStage(stage.id).map(job => (
+                <div key={job.id}>
+                  {stage.id === 'rejected' ? (
+                    <div style={{ background: '#1e293b', borderRadius: 8, padding: '6px 10px', marginBottom: 6, opacity: 0.5 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>{job.company}</div>
+                      <div style={{ fontSize: 10, color: '#334155', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.role}</div>
+                      <button onClick={() => deleteJob(job.id)} style={{ fontSize: 9, padding: '2px 6px', background: 'transparent', color: '#334155', border: 'none', borderRadius: 4, cursor: 'pointer', marginTop: 4 }}>🗑️ remove</button>
+                    </div>
+                  ) : (
+                    <KanbanChip job={job} accent={accent} staleDays={staleDays} updating={updating} onStage={updateStage} onPitch={setPitchJob} />
+                  )}
+                </div>
+              ))
             }
           </div>
         ))}
       </div>
 
       <div className="kanban-mobile">
-        {activeStages.map(stage => {
+        {stages.map(stage => {
           const stageJobs = jobsByStage(stage.id)
           if (stageJobs.length === 0) return null
           return (
@@ -277,28 +289,6 @@ export default function JobBoard({ activeUser }: Props) {
           )
         })}
       </div>
-
-      {rejectedJobs.length > 0 && (
-        <div style={{ marginTop: 8 }}>
-          <button onClick={() => setRejectedOpen(o => !o)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0a0a0f', border: '1px solid #1e293b', borderRadius: rejectedOpen ? '10px 10px 0 0' : '10px', padding: '8px 14px', cursor: 'pointer' }}>
-            <span style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>❌ Rejected <span style={{ marginLeft: 6, fontSize: 11, background: '#1e293b', color: '#475569', padding: '1px 7px', borderRadius: 20 }}>{rejectedJobs.length}</span></span>
-            <span style={{ color: '#334155', fontSize: 14 }}>{rejectedOpen ? '▲' : '▼'}</span>
-          </button>
-          {rejectedOpen && (
-            <div style={{ border: '1px solid #1e293b', borderTop: 'none', borderRadius: '0 0 10px 10px', padding: '8px 12px', background: '#0a0a0f' }}>
-              {rejectedJobs.map(job => (
-                <div key={job.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #0f172a' }}>
-                  <div>
-                    <span style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>{job.company}</span>
-                    <span style={{ fontSize: 11, color: '#334155', marginLeft: 8 }}>{job.role}</span>
-                  </div>
-                  <button onClick={() => deleteJob(job.id)} style={{ fontSize: 10, padding: '2px 8px', background: 'transparent', color: '#334155', border: 'none', borderRadius: 4, cursor: 'pointer' }}>🗑️</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {showModal && <AddJobModal activeUser={activeUser} onClose={() => setShowModal(false)} onSaved={() => { setShowModal(false); loadJobs() }} />}
       {pitchJob && <PitchModal activeUser={activeUser} company={pitchJob.company} role={pitchJob.role} description={pitchJob.role} platform={pitchJob.platform} onClose={() => setPitchJob(null)} />}
