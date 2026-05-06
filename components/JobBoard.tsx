@@ -25,11 +25,11 @@ type Job = {
 type Props = { activeUser: 'caylah' | 'kyle' }
 
 const stages = [
-  { id: 'prospect', label: 'Prospect' },
-  { id: 'applied', label: 'Applied' },
-  { id: 'interview', label: 'Interview' },
-  { id: 'offer', label: 'Offer' },
-  { id: 'rejected', label: 'Rejected' },
+  { id: 'prospect', label: 'Prospect', emoji: '🔭' },
+  { id: 'applied', label: 'Applied', emoji: '📨' },
+  { id: 'interview', label: 'Interview', emoji: '🎙️' },
+  { id: 'offer', label: 'Offer', emoji: '🎉' },
+  { id: 'rejected', label: 'Rejected', emoji: '❌' },
 ]
 
 const STALE_DAYS_CAYLAH = 5
@@ -85,7 +85,7 @@ const JobCard = ({ job, accent, staleDays, updating, onStage, onDelete, onPitch 
         <div style={{ flex: 1, minWidth: 0 }}>
           {job.url ? (
             <a href={job.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, fontWeight: 700, color: accent, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              {job.company}<span style={{ fontSize: 10, color: '#475569' }}>up</span>
+              {job.company}<span style={{ fontSize: 10, color: '#475569' }}>↗</span>
             </a>
           ) : (
             <span style={{ fontSize: 14, fontWeight: 700, color: 'white' }}>{job.company}</span>
@@ -97,22 +97,22 @@ const JobCard = ({ job, accent, staleDays, updating, onStage, onDelete, onPitch 
         </span>
       </div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-        {job.priorityScore > 0 && <span style={{ fontSize: 10, background: '#1e293b', color: '#94a3b8', padding: '1px 7px', borderRadius: 20 }}>score {job.priorityScore}</span>}
-        {job.isFresh && <span style={{ fontSize: 10, background: '#0f2a1a', color: '#4ade80', padding: '1px 7px', borderRadius: 20 }}>Fresh</span>}
+        {job.priorityScore > 0 && <span style={{ fontSize: 10, background: '#1e293b', color: '#94a3b8', padding: '1px 7px', borderRadius: 20 }}>⭐ {job.priorityScore}</span>}
+        {job.isFresh && <span style={{ fontSize: 10, background: '#0f2a1a', color: '#4ade80', padding: '1px 7px', borderRadius: 20 }}>🟢 Fresh</span>}
         {job.salaryMin != null && <span style={{ fontSize: 10, background: '#0f1f0a', color: '#86efac', padding: '1px 7px', borderRadius: 20 }}>${job.salaryMin.toLocaleString()}/mo</span>}
-        {stale && <span style={{ fontSize: 10, background: '#2a1a00', color: '#f59e0b', padding: '1px 7px', borderRadius: 20, fontWeight: 700 }}>Follow up</span>}
-        {hasInterview && <span style={{ fontSize: 10, background: '#1a1500', color: '#fbbf24', padding: '1px 7px', borderRadius: 20, fontWeight: 700 }}>Interview active</span>}
-        {hasOffer && <span style={{ fontSize: 10, background: '#0f1f14', color: '#4ade80', padding: '1px 7px', borderRadius: 20, fontWeight: 700 }}>Offer received</span>}
+        {stale && <span style={{ fontSize: 10, background: '#2a1a00', color: '#f59e0b', padding: '1px 7px', borderRadius: 20, fontWeight: 700 }}>⏰ Follow up</span>}
+        {hasInterview && <span style={{ fontSize: 10, background: '#1a1500', color: '#fbbf24', padding: '1px 7px', borderRadius: 20, fontWeight: 700 }}>🎙️ Interview active</span>}
+        {hasOffer && <span style={{ fontSize: 10, background: '#0f1f14', color: '#4ade80', padding: '1px 7px', borderRadius: 20, fontWeight: 700 }}>🎉 Offer received</span>}
       </div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <button onClick={() => onPitch(job)} style={{ fontSize: 11, padding: '4px 10px', background: '#1e293b', color: '#94a3b8', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Pitch</button>
+        <button onClick={() => onPitch(job)} style={{ fontSize: 11, padding: '4px 10px', background: '#1e293b', color: '#94a3b8', border: 'none', borderRadius: 6, cursor: 'pointer' }}>✨ Pitch</button>
         {nextStage[job.stage] && (
           <button onClick={() => onStage(job.id, nextStage[job.stage])} disabled={updating === job.id} style={{ fontSize: 11, padding: '4px 10px', background: accent, color: 'white', border: 'none', borderRadius: 6, cursor: updating === job.id ? 'default' : 'pointer', opacity: updating === job.id ? 0.6 : 1, fontWeight: 600 }}>
             {updating === job.id ? '...' : nextLabel[job.stage]}
           </button>
         )}
-        <button onClick={() => onStage(job.id, 'rejected')} style={{ fontSize: 11, padding: '4px 8px', background: '#1e1a2e', color: '#f87171', border: '1px solid #7f1d1d', borderRadius: 6, cursor: 'pointer' }}>Reject</button>
-        <button onClick={() => onDelete(job.id)} style={{ fontSize: 11, padding: '4px 8px', background: '#0f172a', color: '#475569', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Delete</button>
+        <button onClick={() => onStage(job.id, 'rejected')} style={{ fontSize: 11, padding: '4px 8px', background: '#1e1a2e', color: '#f87171', border: '1px solid #7f1d1d', borderRadius: 6, cursor: 'pointer' }}>👎</button>
+        <button onClick={() => onDelete(job.id)} style={{ fontSize: 11, padding: '4px 8px', background: '#0f172a', color: '#475569', border: 'none', borderRadius: 6, cursor: 'pointer' }}>🗑️</button>
       </div>
     </div>
   )
@@ -133,20 +133,20 @@ const KanbanChip = ({ job, accent, staleDays, updating, onStage, onPitch }: Chip
     <div style={{ background: '#1e293b', borderRadius: 8, padding: '8px 10px', marginBottom: 6, borderLeft: '3px solid ' + (stale ? '#f59e0b' : stageColor[job.stage] || '#475569') }}>
       {job.url ? (
         <a href={job.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 600, color: accent, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
-          {job.company}
+          {job.company}<span style={{ fontSize: 9, color: '#475569' }}>↗</span>
         </a>
       ) : (
         <div style={{ fontSize: 12, fontWeight: 600, color: 'white' }}>{job.company}</div>
       )}
       <div style={{ fontSize: 11, color: '#64748b', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.role}</div>
-      {stale && <div style={{ fontSize: 10, color: '#f59e0b', marginTop: 4 }}>Follow up</div>}
+      {stale && <div style={{ fontSize: 10, color: '#f59e0b', marginTop: 4 }}>⏰ Follow up</div>}
       <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
         {nextStage[job.stage] && (
           <button onClick={() => onStage(job.id, nextStage[job.stage])} disabled={updating === job.id} style={{ fontSize: 10, padding: '3px 8px', background: accent, color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}>
             {updating === job.id ? '...' : nextLabel[job.stage]}
           </button>
         )}
-        <button onClick={() => onPitch(job)} style={{ fontSize: 10, padding: '3px 8px', background: '#0f172a', color: '#64748b', border: 'none', borderRadius: 4, cursor: 'pointer' }}>Pitch</button>
+        <button onClick={() => onPitch(job)} style={{ fontSize: 10, padding: '3px 8px', background: '#0f172a', color: '#64748b', border: 'none', borderRadius: 4, cursor: 'pointer' }}>✨</button>
       </div>
     </div>
   )
@@ -162,6 +162,7 @@ export default function JobBoard({ activeUser }: Props) {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
   const [top5Open, setTop5Open] = useState(true)
+  const [rejectedOpen, setRejectedOpen] = useState(false)
 
   const loadJobs = async () => {
     setLoading(true)
@@ -192,13 +193,15 @@ export default function JobBoard({ activeUser }: Props) {
 
   const topJobs = jobs.filter(j => j.stage !== 'rejected').slice(0, 5)
   const jobsByStage = (stage: string) => jobs.filter(j => j.stage === stage)
+  const activeStages = stages.filter(s => s.id !== 'rejected')
+  const rejectedJobs = jobsByStage('rejected')
 
   return (
     <div>
       <div className="flex-between">
         <div>
           <div className="section-title">Opportunities</div>
-          <div className="section-sub">{isKyle ? 'LegalTech CSM - Marketing Ops - Account Management' : 'RevOps - GTM Ops - Business Operations'}</div>
+          <div className="section-sub">{isKyle ? 'LegalTech CSM · Marketing Ops · Account Management' : 'RevOps · GTM Ops · Business Operations'}</div>
         </div>
         <button className={'btn-add' + (isKyle ? ' kyle' : '')} onClick={() => setShowModal(true)}>+ Add Job</button>
       </div>
@@ -206,16 +209,16 @@ export default function JobBoard({ activeUser }: Props) {
       <div style={{ marginBottom: 24 }}>
         <button onClick={() => setTop5Open(o => !o)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0f172a', border: '1px solid #1e293b', borderRadius: top5Open ? '12px 12px 0 0' : '12px', padding: '10px 16px', cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>Highest Probability</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'white' }}>⭐ Highest Probability</span>
             <span className="count-badge">Top {Math.min(topJobs.length, 5)}</span>
             {topJobs.some(j => j.stage === 'interview' || j.stage === 'offer') && (
-              <span style={{ fontSize: 11, background: '#14532d', color: '#4ade80', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Action needed</span>
+              <span style={{ fontSize: 11, background: '#14532d', color: '#4ade80', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>🔥 Action needed</span>
             )}
             {topJobs.some(j => checkStale(j, staleDays)) && (
-              <span style={{ fontSize: 11, background: '#2a1a00', color: '#f59e0b', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Follow up due</span>
+              <span style={{ fontSize: 11, background: '#2a1a00', color: '#f59e0b', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>⏰ Follow up due</span>
             )}
           </div>
-          <span style={{ color: '#64748b', fontSize: 16 }}>{top5Open ? 'v' : '>'}</span>
+          <span style={{ color: '#64748b', fontSize: 16 }}>{top5Open ? '▲' : '▼'}</span>
         </button>
 
         {!top5Open && !loading && topJobs.length > 0 && (
@@ -223,7 +226,7 @@ export default function JobBoard({ activeUser }: Props) {
             {topJobs.map(job => (
               <span key={job.id} style={{ fontSize: 11, background: '#1e293b', color: '#94a3b8', padding: '3px 10px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 5 }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: stageColor[job.stage] || '#475569', display: 'inline-block' }} />
-                {job.company}
+                {job.url ? <a href={job.url} target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}>{job.company} ↗</a> : job.company}
               </span>
             ))}
           </div>
@@ -244,13 +247,13 @@ export default function JobBoard({ activeUser }: Props) {
 
       <div className="section-label">
         <h3>All Opportunities</h3>
-        <span className="count-badge">{jobs.length} total</span>
+        <span className="count-badge">{jobs.filter(j => j.stage !== 'rejected').length} active</span>
       </div>
 
       <div className="kanban-grid kanban-desktop">
-        {stages.map(stage => (
+        {activeStages.map(stage => (
           <div key={stage.id} className="kanban-col">
-            <div className="kanban-header">{stage.label} <span style={{ marginLeft: 6, color: '#475569' }}>{jobsByStage(stage.id).length}</span></div>
+            <div className="kanban-header">{stage.emoji} {stage.label} <span style={{ marginLeft: 6, color: '#475569' }}>{jobsByStage(stage.id).length}</span></div>
             {jobsByStage(stage.id).length === 0
               ? <div className="kanban-empty">Empty</div>
               : jobsByStage(stage.id).map(job => <KanbanChip key={job.id} job={job} accent={accent} staleDays={staleDays} updating={updating} onStage={updateStage} onPitch={setPitchJob} />)
@@ -260,13 +263,13 @@ export default function JobBoard({ activeUser }: Props) {
       </div>
 
       <div className="kanban-mobile">
-        {stages.map(stage => {
+        {activeStages.map(stage => {
           const stageJobs = jobsByStage(stage.id)
           if (stageJobs.length === 0) return null
           return (
             <div key={stage.id} style={{ marginBottom: 20 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', padding: '6px 0', borderBottom: '1px solid #1e293b', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                {stage.label}
+                {stage.emoji} {stage.label}
                 <span style={{ fontSize: 11, background: '#1e293b', color: '#475569', padding: '1px 7px', borderRadius: 20 }}>{stageJobs.length}</span>
               </div>
               {stageJobs.map(job => <JobCard key={job.id} job={job} accent={accent} staleDays={staleDays} updating={updating} onStage={updateStage} onDelete={deleteJob} onPitch={setPitchJob} />)}
@@ -274,6 +277,28 @@ export default function JobBoard({ activeUser }: Props) {
           )
         })}
       </div>
+
+      {rejectedJobs.length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          <button onClick={() => setRejectedOpen(o => !o)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0a0a0f', border: '1px solid #1e293b', borderRadius: rejectedOpen ? '10px 10px 0 0' : '10px', padding: '8px 14px', cursor: 'pointer' }}>
+            <span style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>❌ Rejected <span style={{ marginLeft: 6, fontSize: 11, background: '#1e293b', color: '#475569', padding: '1px 7px', borderRadius: 20 }}>{rejectedJobs.length}</span></span>
+            <span style={{ color: '#334155', fontSize: 14 }}>{rejectedOpen ? '▲' : '▼'}</span>
+          </button>
+          {rejectedOpen && (
+            <div style={{ border: '1px solid #1e293b', borderTop: 'none', borderRadius: '0 0 10px 10px', padding: '8px 12px', background: '#0a0a0f' }}>
+              {rejectedJobs.map(job => (
+                <div key={job.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #0f172a' }}>
+                  <div>
+                    <span style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>{job.company}</span>
+                    <span style={{ fontSize: 11, color: '#334155', marginLeft: 8 }}>{job.role}</span>
+                  </div>
+                  <button onClick={() => deleteJob(job.id)} style={{ fontSize: 10, padding: '2px 8px', background: 'transparent', color: '#334155', border: 'none', borderRadius: 4, cursor: 'pointer' }}>🗑️</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {showModal && <AddJobModal activeUser={activeUser} onClose={() => setShowModal(false)} onSaved={() => { setShowModal(false); loadJobs() }} />}
       {pitchJob && <PitchModal activeUser={activeUser} company={pitchJob.company} role={pitchJob.role} description={pitchJob.role} platform={pitchJob.platform} onClose={() => setPitchJob(null)} />}
