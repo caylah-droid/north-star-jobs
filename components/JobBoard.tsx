@@ -80,68 +80,65 @@ const JobCard = ({ job, accent, staleDays, updating, onStage, onDelete, onPitch 
   const hasOffer = job.stage === 'offer'
   const urgent = hasInterview || hasOffer || stale
   return (
-    <div style={{ padding: '8px 14px', borderBottom: '1px solid #0d1117', background: urgent ? '#0d1117' : 'transparent', borderLeft: urgent ? '3px solid ' + (stale ? '#f59e0b' : '#22c55e') : '3px solid transparent', display: 'flex', alignItems: 'center', gap: 10, minHeight: 44 }}>
+    <div style={{ padding: '7px 14px', borderBottom: '1px solid #0d1117', background: urgent ? '#0d1117' : 'transparent', borderLeft: urgent ? '3px solid ' + (stale ? '#f59e0b' : '#22c55e') : '3px solid transparent', display: 'flex', alignItems: 'center', gap: 8 }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'nowrap', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
           {job.url ? (
-            <a href={job.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 700, color: accent, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              {job.company} <span style={{ fontSize: 9, color: '#475569' }}>↗</span>
-            </a>
+            <a href={job.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 700, color: accent, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>{job.company}</a>
           ) : (
             <span style={{ fontSize: 13, fontWeight: 700, color: 'white', whiteSpace: 'nowrap', flexShrink: 0 }}>{job.company}</span>
           )}
           <span style={{ fontSize: 10, color: '#334155', flexShrink: 0 }}>·</span>
           <span style={{ fontSize: 11, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.role}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3, flexWrap: 'nowrap' }}>
-          {job.salaryMin != null && <span style={{ fontSize: 9, background: '#0f1f0a', color: '#86efac', padding: '1px 5px', borderRadius: 20, whiteSpace: 'nowrap' }}>${job.salaryMin.toLocaleString()}/mo</span>}
-          {job.isFresh && <span style={{ fontSize: 9, background: '#0f2a1a', color: '#4ade80', padding: '1px 5px', borderRadius: 20 }}>🟢 Fresh</span>}
-          {stale && <span style={{ fontSize: 9, background: '#2a1a00', color: '#f59e0b', padding: '1px 5px', borderRadius: 20, fontWeight: 700 }}>⏰ Follow up</span>}
-          {hasInterview && <span style={{ fontSize: 9, background: '#1a1500', color: '#fbbf24', padding: '1px 5px', borderRadius: 20 }}>🎙️ Interview</span>}
-          {hasOffer && <span style={{ fontSize: 9, background: '#0f1f14', color: '#4ade80', padding: '1px 5px', borderRadius: 20 }}>🎉 Offer</span>}
+          {stale && <span style={{ fontSize: 9, background: '#2a1a00', color: '#f59e0b', padding: '1px 5px', borderRadius: 20, fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap' }}>⏰ Follow up</span>}
+          {hasInterview && <span style={{ fontSize: 9, background: '#1a1500', color: '#fbbf24', padding: '1px 5px', borderRadius: 20, flexShrink: 0 }}>Interview</span>}
+          {hasOffer && <span style={{ fontSize: 9, background: '#0f1f14', color: '#4ade80', padding: '1px 5px', borderRadius: 20, flexShrink: 0 }}>Offer</span>}
+          {job.salaryMin != null && <span style={{ fontSize: 9, background: '#0f1f0a', color: '#86efac', padding: '1px 5px', borderRadius: 20, flexShrink: 0, whiteSpace: 'nowrap' }}>${job.salaryMin.toLocaleString()}/mo</span>}
         </div>
       </div>
       <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignItems: 'center' }}>
         <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 20, background: stageColor[job.stage] + '22', color: stageColor[job.stage], border: '1px solid ' + stageColor[job.stage] + '33', whiteSpace: 'nowrap' }}>{job.stage}</span>
-        <button onClick={() => onPitch(job)} style={{ fontSize: 10, padding: '3px 7px', background: '#1e293b', color: '#94a3b8', border: 'none', borderRadius: 5, cursor: 'pointer' }}>✨</button>
         {nextStage[job.stage] && (
           <button onClick={() => onStage(job.id, nextStage[job.stage])} disabled={updating === job.id} style={{ fontSize: 10, padding: '3px 8px', background: accent, color: 'white', border: 'none', borderRadius: 5, cursor: updating === job.id ? 'default' : 'pointer', opacity: updating === job.id ? 0.6 : 1, fontWeight: 600, whiteSpace: 'nowrap' }}>
             {updating === job.id ? '...' : nextLabel[job.stage]}
           </button>
         )}
+        <button onClick={() => onPitch(job)} style={{ fontSize: 10, padding: '3px 7px', background: '#1e293b', color: '#94a3b8', border: 'none', borderRadius: 5, cursor: 'pointer' }}>Pitch</button>
         <button onClick={() => onStage(job.id, 'rejected')} style={{ fontSize: 10, padding: '3px 6px', background: '#1e1a2e', color: '#f87171', border: '1px solid #7f1d1d', borderRadius: 5, cursor: 'pointer' }}>👎</button>
-        <button onClick={() => onDelete(job.id)} style={{ fontSize: 10, padding: '3px 6px', background: 'transparent', color: '#334155', border: 'none', borderRadius: 5, cursor: 'pointer' }}>🗑️</button>
+        <button onClick={() => onDelete(job.id)} style={{ fontSize: 10, padding: '3px 6px', background: 'transparent', color: '#475569', border: 'none', borderRadius: 5, cursor: 'pointer' }}>🗑️</button>
       </div>
     </div>
   )
 }
 
 
-const KanbanChip = ({ job, accent, staleDays, updating, onStage, onPitch }: ChipProps) => {
+const KanbanChip = ({ job, accent, staleDays, updating, onStage, onPitch, onDelete }: ChipProps) => {
   const stale = checkStale(job, staleDays)
   return (
     <div style={{ background: '#1e293b', borderRadius: 8, padding: '8px 10px', marginBottom: 6, borderLeft: '3px solid ' + (stale ? '#f59e0b' : stageColor[job.stage] || '#475569') }}>
       {job.url ? (
-        <a href={job.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 600, color: accent, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
-          {job.company}<span style={{ fontSize: 9, color: '#475569' }}>↗</span>
+        <a href={job.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 600, color: accent, textDecoration: 'none' }}>
+          {job.company}
         </a>
       ) : (
         <div style={{ fontSize: 12, fontWeight: 600, color: 'white' }}>{job.company}</div>
       )}
       <div style={{ fontSize: 11, color: '#64748b', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.role}</div>
-      {stale && <div style={{ fontSize: 10, color: '#f59e0b', marginTop: 4 }}>⏰ Follow up</div>}
-      <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+      {stale && <div style={{ fontSize: 10, color: '#f59e0b', marginTop: 3 }}>⏰ Follow up</div>}
+      <div style={{ display: 'flex', gap: 4, marginTop: 6, alignItems: 'center' }}>
         {nextStage[job.stage] && (
           <button onClick={() => onStage(job.id, nextStage[job.stage])} disabled={updating === job.id} style={{ fontSize: 10, padding: '3px 8px', background: accent, color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}>
             {updating === job.id ? '...' : nextLabel[job.stage]}
           </button>
         )}
-        <button onClick={() => onPitch(job)} style={{ fontSize: 10, padding: '3px 8px', background: '#0f172a', color: '#64748b', border: 'none', borderRadius: 4, cursor: 'pointer' }}>✨</button>
+        <button onClick={() => onPitch(job)} style={{ fontSize: 10, padding: '3px 7px', background: '#0f172a', color: '#64748b', border: 'none', borderRadius: 4, cursor: 'pointer' }}>Pitch</button>
         <button onClick={() => onStage(job.id, 'rejected')} style={{ fontSize: 10, padding: '3px 6px', background: '#1e1a2e', color: '#f87171', border: '1px solid #7f1d1d', borderRadius: 4, cursor: 'pointer' }}>👎</button>
+        <button onClick={() => onDelete(job.id)} style={{ fontSize: 10, padding: '3px 6px', background: 'transparent', color: '#475569', border: 'none', borderRadius: 4, cursor: 'pointer' }}>🗑️</button>
       </div>
     </div>
   )
 }
+
 
 export default function JobBoard({ activeUser }: Props) {
   const isKyle = activeUser === 'kyle'
@@ -255,7 +252,7 @@ export default function JobBoard({ activeUser }: Props) {
                       <button onClick={() => deleteJob(job.id)} style={{ fontSize: 9, padding: '2px 6px', background: 'transparent', color: '#334155', border: 'none', borderRadius: 4, cursor: 'pointer', marginTop: 4 }}>🗑️ remove</button>
                     </div>
                   ) : (
-                    <KanbanChip job={job} accent={accent} staleDays={staleDays} updating={updating} onStage={updateStage} onPitch={setPitchJob} />
+                    <KanbanChip job={job} accent={accent} staleDays={staleDays} updating={updating} onStage={updateStage} onPitch={setPitchJob} onDelete={deleteJob} />
                   )}
                 </div>
               ))
