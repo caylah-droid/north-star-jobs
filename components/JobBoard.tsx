@@ -90,7 +90,7 @@ const JobCard = ({ job, accent, staleDays, updating, onStage, onDelete, onPitch 
   const hasOffer = job.stage === 'offer'
   const urgent = hasInterview || hasOffer || stale
   return (
-    <div style={{ padding: '7px 14px', borderBottom: '1px solid #0d1117', background: urgent ? '#0d1117' : 'transparent', borderLeft: urgent ? '3px solid ' + (stale ? '#f59e0b' : '#22c55e') : '3px solid transparent', display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div style={{ padding: '8px 14px', borderBottom: '1px solid #0d1117', background: urgent ? '#0d1117' : 'transparent', borderLeft: urgent ? '3px solid ' + (stale ? '#f59e0b' : '#22c55e') : '3px solid transparent', display: 'flex', alignItems: 'center', gap: 10 }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
           {job.url ? (
@@ -100,14 +100,16 @@ const JobCard = ({ job, accent, staleDays, updating, onStage, onDelete, onPitch 
           )}
           <span style={{ fontSize: 10, color: '#334155', flexShrink: 0 }}>·</span>
           <span style={{ fontSize: 11, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.role}</span>
-          {stale && <span style={{ fontSize: 9, background: '#2a1a00', color: '#f59e0b', padding: '1px 5px', borderRadius: 20, fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap' }}>⏰ Follow up</span>}
-          {hasInterview && <span style={{ fontSize: 9, background: '#1a1500', color: '#fbbf24', padding: '1px 5px', borderRadius: 20, flexShrink: 0 }}>Interview</span>}
-          {hasOffer && <span style={{ fontSize: 9, background: '#0f1f14', color: '#4ade80', padding: '1px 5px', borderRadius: 20, flexShrink: 0 }}>Offer</span>}
-          {job.salaryMin != null && <span style={{ fontSize: 9, background: '#0f1f0a', color: '#86efac', padding: '1px 5px', borderRadius: 20, flexShrink: 0, whiteSpace: 'nowrap' }}>${job.salaryMin.toLocaleString()}/mo</span>}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3 }}>
+          <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 20, background: stageColor[job.stage] + '22', color: stageColor[job.stage], border: '1px solid ' + stageColor[job.stage] + '33', whiteSpace: 'nowrap' }}>{job.stage}</span>
+          {job.salaryMin != null && <span style={{ fontSize: 9, color: '#64748b', whiteSpace: 'nowrap' }}>${job.salaryMin.toLocaleString()}/mo</span>}
+          {stale && <span style={{ fontSize: 9, background: '#2a1a00', color: '#f59e0b', padding: '1px 5px', borderRadius: 20, fontWeight: 700 }}>⏰ Follow up</span>}
+          {hasInterview && <span style={{ fontSize: 9, color: '#fbbf24' }}>🎙️ Interview active</span>}
+          {hasOffer && <span style={{ fontSize: 9, color: '#4ade80' }}>🎉 Offer received</span>}
         </div>
       </div>
       <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignItems: 'center' }}>
-        <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 20, background: stageColor[job.stage] + '22', color: stageColor[job.stage], border: '1px solid ' + stageColor[job.stage] + '33', whiteSpace: 'nowrap' }}>{job.stage}</span>
         {nextStage[job.stage] && (
           <button onClick={() => onStage(job.id, nextStage[job.stage])} disabled={updating === job.id} style={{ fontSize: 10, padding: '3px 8px', background: accent, color: 'white', border: 'none', borderRadius: 5, cursor: updating === job.id ? 'default' : 'pointer', opacity: updating === job.id ? 0.6 : 1, fontWeight: 600, whiteSpace: 'nowrap' }}>
             {updating === job.id ? '...' : nextLabel[job.stage]}
