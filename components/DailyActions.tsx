@@ -122,6 +122,8 @@ export default function DailyActions({ activeUser }: Props) {
     })
   }
 
+  const pendingFollowUps = staleJobs.filter(j => !followedUp.has(j.id))
+
   const isDone = (action: typeof actions[0]) => {
     if (action.statKey === 'appliedToday') return appliedToday >= 5
     if (action.type === 'followup' && staleJobs.length > 0) return pendingFollowUps.length === 0
@@ -133,7 +135,6 @@ export default function DailyActions({ activeUser }: Props) {
   const allDone = completedCount === actions.length
   const phrase = phrases[new Date().getDay() % phrases.length]
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-  const pendingFollowUps = staleJobs.filter(j => !followedUp.has(j.id))
   const daysStale = (j: StaleJob) => Math.floor((Date.now() - new Date(j.appliedAt || j.createdAt).getTime()) / 86400000)
 
   return (
