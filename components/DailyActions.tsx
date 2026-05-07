@@ -99,6 +99,7 @@ export default function DailyActions({ activeUser }: Props) {
     const next = new Set(done)
     if (next.has(type)) {
       next.delete(type)
+      if (type === 'outreach') setOutreachToday(prev => Math.max(0, prev - 1))
     } else {
       next.add(type)
       // Save to DB
@@ -107,6 +108,7 @@ export default function DailyActions({ activeUser }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user: activeUser, type }),
       })
+      if (type === 'outreach') setOutreachToday(prev => prev + 1)
     }
     setDone(next)
   }
@@ -200,8 +202,10 @@ export default function DailyActions({ activeUser }: Props) {
                     {action.emoji} {action.title}
                   </span>
                   {isApply && <span style={{ fontSize: 10, color: appliedToday >= 5 ? '#4ade80' : '#64748b' }}>{appliedToday}/5</span>}
-                  {action.type === 'followup' && pendingFollowUps.length > 0 && !done_ && (
-                    <span style={{ fontSize: 10, color: '#f59e0b' }}>({pendingFollowUps.length} waiting)</span>
+                  {action.type === 'followup' && staleJobs.length > 0 && !done_ && (
+                    <span style={{ fontSize: 10, color: pendingFollowUps.length === 0 ? '#4ade80' : '#f59e0b' }}>
+                      {staleJobs.length - pendingFollowUps.length}/{staleJobs.length}
+                    </span>
                   )}
                 </div>
                 {!done_ && <div style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>{action.description}</div>}
