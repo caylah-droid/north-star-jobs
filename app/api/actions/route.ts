@@ -1,79 +1,48 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextResponse } from 'next/server'
+import { PrismaClient } from '@prisma/client'
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
+const prisma = new PrismaClient()
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
   const user = searchParams.get('user') || 'caylah'
 
-  const startOfDay = new Date()
-  startOfDay.setHours(0, 0, 0, 0)
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
 
-  const endOfDay = new Date()
-  endOfDay.setHours(23, 59, 59, 999)
+  const actions = await prisma.action.findMany({
+    where: {
+      user,
+      createdAt: { gte: todayStart },
+    },
+    orderBy: { createdAt: 'desc' },
+  })
 
-  try {
-    // Today's completed daily actions (outreach, followup, research)
-    const actions = await prisma.action.findMany({
-      where: {
-        user,
-        createdAt: { gte: startOfDay, lte: endOfDay },
-      },
-      select: { id: true, type: true },
-      orderBy: { createdAt: 'desc' },
-    })
-
-    // Today's actual applications from pipeline
-    const appliedToday = await prisma.job.count({
-      where: {
-        user,
-        stage: 'applied',
-        appliedAt: { gte: startOfDay, lte: endOfDay },
-      },
-    })
-
-    return NextResponse.json({ actions, appliedToday })
-  } catch (err) {
-    console.error('GET /api/actions error:', err)
-    return NextResponse.json({ error: 'Failed to fetch actions' }, { status: 500 })
-  }
+  return NextResponse.json(actions)
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json()
-    const { user, type, note } = body
+export async function POST(request: Request) {
+  const body = await request.json()
+  const { user, type, jobId, notes } = body
 
-    if (!user || !type) {
-      return NextResponse.json({ error: 'user and type required' }, { status: 400 })
-    }
+  const action = await prisma.action.create({
+    data: {
+      user: user || 'caylah',
+      type,
+      jobId: jobId || null,
+      notes: notes || null,
+      doneAt: new Date(),
+      completed: true,
+    },
+  })
 
-    const action = await prisma.action.create({
-      data: {
-        user,
-        type,
-        note: note || null,
-        completed: true,
-      },
+  // If this is a follow-up action, stamp followedUpAt on the job
+  if (type === 'followup' && jobId) {
+    await prisma.job.update({
+      where: { id: jobId },
+      data: { followedUpAt: new Date() } as any,
     })
-
-    return NextResponse.json(action)
-  } catch (err) {
-    console.error('POST /api/actions error:', err)
-    return NextResponse.json({ error: 'Failed to save action' }, { status: 500 })
   }
-}
 
-export async function DELETE(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const id = searchParams.get('id')
-
-  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
-
-  try {
-    await prisma.action.delete({ where: { id } })
-    return NextResponse.json({ success: true })
-  } catch (err) {
-    console.error('DELETE /api/actions error:', err)
-    return NextResponse.json({ error: 'Failed to delete action' }, { status: 500 })
-  }
+  return NextResponse.json(action)
 }
