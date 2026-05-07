@@ -97,11 +97,36 @@ export default function DailyActions({ activeUser }: Props) {
           <span style={{ fontSize: 10, fontWeight: 700, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Today's contract</span>
           <span style={{ fontSize: 10, color: '#334155' }}>{today}</span>
         </div>
+
+        <div style={{ display: 'flex', gap: 0, marginBottom: 12 }}>
+          {[
+            { label: isKyle ? 'Outreach' : 'Outreach', target: isKyle ? 3 : 1, value: null, emoji: '🤝' },
+            { label: 'Applied', target: 5, value: stats.appliedToday, emoji: '📨' },
+            { label: 'Follow ups', target: isKyle ? 3 : 2, value: stats.staleCount, emoji: '🔁' },
+          ].map((t, i, arr) => {
+            const hit = t.value !== null && t.value >= t.target
+            return (
+              <div key={t.label} style={{ flex: '1 1 0', display: 'flex', alignItems: 'center', gap: 6, paddingRight: i < arr.length - 1 ? 12 : 0, marginRight: i < arr.length - 1 ? 12 : 0, borderRight: i < arr.length - 1 ? '1px solid #1e293b' : 'none' }}>
+                <div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: hit ? '#22c55e' : accentLight, lineHeight: 1 }}>
+                    {t.value !== null ? t.value : t.target}
+                  </div>
+                  {t.value !== null && <div style={{ fontSize: 9, color: '#475569' }}>/ {t.target}</div>}
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: hit ? '#4ade80' : 'white', fontWeight: 600 }}>{t.label}</div>
+                  <div style={{ fontSize: 10, color: '#334155' }}>{t.emoji}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ flex: 1, background: '#1e293b', borderRadius: 999, height: 6, overflow: 'hidden' }}>
+          <div style={{ flex: 1, background: '#1e293b', borderRadius: 999, height: 5, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: progressPct + '%', background: allDone ? '#22c55e' : accent, borderRadius: 999, transition: 'width 0.4s ease' }} />
           </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: allDone ? '#22c55e' : '#64748b', minWidth: 36, textAlign: 'right' }}>{completedCount}/{actions.length}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: allDone ? '#22c55e' : '#64748b', minWidth: 36, textAlign: 'right' }}>{progressPct}%</span>
         </div>
         {allDone && (
           <div style={{ marginTop: 10, fontSize: 12, color: '#4ade80', fontStyle: 'italic' }}>🏆 Mission accomplished. "{phrase}"</div>
