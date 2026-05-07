@@ -150,9 +150,9 @@ export default function DailyActions({ activeUser }: Props) {
           {[
             { label: 'Outreach', target: isKyle ? 3 : 1, value: null, emoji: '🤝' },
             { label: 'Applied', target: 5, value: appliedToday, emoji: '📨' },
-            { label: 'Follow ups', target: isKyle ? 3 : 2, value: pendingFollowUps.length === 0 && staleJobs.length > 0 ? 0 : staleJobs.length, emoji: '🔁' },
+            { label: 'Follow ups', target: staleJobs.length, value: staleJobs.length - pendingFollowUps.length, emoji: '🔁' },
           ].map((t, i, arr) => {
-            const hit = t.value !== null && t.value === 0 && staleJobs.length > 0 || (t.value !== null && t.value >= t.target)
+            const hit = t.value !== null && t.target > 0 && t.value >= t.target
             const displayVal = t.value !== null ? t.value : t.target
             return (
               <div key={t.label} style={{ flex: '1 1 0', display: 'flex', alignItems: 'center', gap: 6, paddingRight: i < arr.length - 1 ? 12 : 0, marginRight: i < arr.length - 1 ? 12 : 0, borderRight: i < arr.length - 1 ? '1px solid #1e293b' : 'none' }}>
