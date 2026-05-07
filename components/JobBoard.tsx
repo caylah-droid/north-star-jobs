@@ -143,7 +143,7 @@ const KanbanChip = ({ job, accent, staleDays, updating, onStage, onPitch, onDele
             {updating === job.id ? '...' : nextLabel[job.stage]}
           </button>
         )}
-        <button onClick={() => onPitch(job)} style={{ fontSize: 10, padding: '3px 7px', background: '#0f172a', color: '#64748b', border: 'none', borderRadius: 4, cursor: 'pointer' }}>✦ Pitch</button>
+        <button onClick={() => onPitch(job)} style={{ fontSize: 10, padding: '3px 7px', background: '#0f172a', color: '#64748b', border: 'none', borderRadius: 4, cursor: 'pointer' }}>✨</button>
         <button onClick={() => onStage(job.id, 'rejected')} style={{ fontSize: 10, padding: '3px 6px', background: '#1e1a2e', color: '#f87171', border: '1px solid #7f1d1d', borderRadius: 4, cursor: 'pointer' }}>👎</button>
         <button onClick={() => onDelete(job.id)} style={{ fontSize: 10, padding: '3px 6px', background: 'transparent', color: '#475569', border: 'none', borderRadius: 4, cursor: 'pointer' }}>🗑️</button>
       </div>
