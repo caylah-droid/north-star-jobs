@@ -74,7 +74,7 @@ export default function DailyActions({ activeUser }: Props) {
       setDone(restoredDone)
 
       // Restore followed up jobs from DB
-      const followedUpJobIds = new Set(
+      const followedUpJobIds = new Set<string>(
         todayActions.filter((a: any) => a.type === 'followup' && a.jobId).map((a: any) => a.jobId)
       )
       setFollowedUp(followedUpJobIds)
