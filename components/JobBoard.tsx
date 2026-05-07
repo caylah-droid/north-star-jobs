@@ -103,10 +103,10 @@ const JobCard = ({ job, accent, staleDays, updating, onStage, onDelete, onPitch 
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3 }}>
           <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 20, background: stageColor[job.stage] + '22', color: stageColor[job.stage], border: '1px solid ' + stageColor[job.stage] + '33', whiteSpace: 'nowrap' }}>{job.stage}</span>
-          {job.salaryMin != null && <span style={{ fontSize: 9, color: '#64748b', whiteSpace: 'nowrap' }}>${job.salaryMin.toLocaleString()}/mo</span>}
-          {stale && <span style={{ fontSize: 9, background: '#2a1a00', color: '#f59e0b', padding: '1px 5px', borderRadius: 20, fontWeight: 700 }}>⏰ Follow up</span>}
-          {hasInterview && <span style={{ fontSize: 9, color: '#fbbf24' }}>🎙️ Interview active</span>}
-          {hasOffer && <span style={{ fontSize: 9, color: '#4ade80' }}>🎉 Offer received</span>}
+          {job.salaryMin != null && <span style={{ fontSize: 9, color: '#4ade80', whiteSpace: 'nowrap', fontWeight: 600 }}>${job.salaryMin.toLocaleString()}/mo</span>}
+          {stale && <span style={{ fontSize: 12 }} title="Follow up needed">🔔</span>}
+          {hasInterview && <span style={{ fontSize: 12 }} title="Interview active">🎙️</span>}
+          {hasOffer && <span style={{ fontSize: 12 }} title="Offer received">🎉</span>}
         </div>
       </div>
       <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignItems: 'center' }}>
@@ -115,7 +115,7 @@ const JobCard = ({ job, accent, staleDays, updating, onStage, onDelete, onPitch 
             {updating === job.id ? '...' : nextLabel[job.stage]}
           </button>
         )}
-        <button onClick={() => onPitch(job)} style={{ fontSize: 10, padding: '3px 7px', background: '#1e293b', color: '#94a3b8', border: 'none', borderRadius: 5, cursor: 'pointer' }}>✦ Pitch</button>
+        <button onClick={() => onPitch(job)} style={{ fontSize: 11, padding: '3px 7px', background: '#1e293b', color: '#94a3b8', border: 'none', borderRadius: 5, cursor: 'pointer' }}>✨</button>
         <button onClick={() => onStage(job.id, 'rejected')} style={{ fontSize: 10, padding: '3px 6px', background: '#1e1a2e', color: '#f87171', border: '1px solid #7f1d1d', borderRadius: 5, cursor: 'pointer' }}>👎</button>
         <button onClick={() => onDelete(job.id)} style={{ fontSize: 10, padding: '3px 6px', background: 'transparent', color: '#475569', border: 'none', borderRadius: 5, cursor: 'pointer' }}>🗑️</button>
       </div>
