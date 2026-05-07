@@ -94,19 +94,16 @@ const JobCard = ({ job, accent, staleDays, updating, onStage, onDelete, onPitch 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
           {job.url ? (
-            <a href={job.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 700, color: accent, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>{job.company}</a>
+            <a href={job.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 700, color: 'white', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>{job.company}</a>
           ) : (
             <span style={{ fontSize: 13, fontWeight: 700, color: 'white', whiteSpace: 'nowrap', flexShrink: 0 }}>{job.company}</span>
           )}
-          <span style={{ fontSize: 10, color: '#334155', flexShrink: 0 }}>·</span>
-          <span style={{ fontSize: 11, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.role}</span>
+          <span style={{ fontSize: 10, color: '#1e293b', flexShrink: 0 }}>·</span>
+          <span style={{ fontSize: 11, color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.role}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3 }}>
-          <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 20, background: stageColor[job.stage] + '22', color: stageColor[job.stage], border: '1px solid ' + stageColor[job.stage] + '33', whiteSpace: 'nowrap' }}>{job.stage}</span>
           {job.salaryMin != null && <span style={{ fontSize: 9, color: '#4ade80', whiteSpace: 'nowrap', fontWeight: 600 }}>${job.salaryMin.toLocaleString()}/mo</span>}
           {stale && <span style={{ fontSize: 12 }} title="Follow up needed">🔔</span>}
-          {hasInterview && <span style={{ fontSize: 12 }} title="Interview active">🎙️</span>}
-          {hasOffer && <span style={{ fontSize: 12 }} title="Offer received">🎉</span>}
         </div>
       </div>
       <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignItems: 'center' }}>
