@@ -124,6 +124,7 @@ export default function DailyActions({ activeUser }: Props) {
 
   const isDone = (action: typeof actions[0]) => {
     if (action.statKey === 'appliedToday') return appliedToday >= 5
+    if (action.type === 'followup' && staleJobs.length > 0) return pendingFollowUps.length === 0
     return done.has(action.type)
   }
 
