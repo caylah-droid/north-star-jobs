@@ -48,6 +48,7 @@ export default function DailyActions({ activeUser }: Props) {
   const [staleJobs, setStaleJobs] = useState<StaleJob[]>([])
   const [queueOpen, setQueueOpen] = useState(true)
   const [loading, setLoading] = useState(true)
+  const [outreachToday, setOutreachToday] = useState(0)
 
   useEffect(() => {
     setDone(new Set())
@@ -149,7 +150,7 @@ export default function DailyActions({ activeUser }: Props) {
 
         <div style={{ display: 'flex', gap: 0, marginBottom: 12 }}>
           {[
-            { label: 'Outreach', target: isKyle ? 3 : 1, value: null, emoji: '🤝' },
+            { label: 'Outreach', target: isKyle ? 3 : 1, value: outreachToday, emoji: '🤝' },
             { label: 'Applied', target: 5, value: appliedToday, emoji: '📨' },
             { label: 'Follow ups', target: staleJobs.length, value: staleJobs.length - pendingFollowUps.length, emoji: '🔁' },
           ].map((t, i, arr) => {
